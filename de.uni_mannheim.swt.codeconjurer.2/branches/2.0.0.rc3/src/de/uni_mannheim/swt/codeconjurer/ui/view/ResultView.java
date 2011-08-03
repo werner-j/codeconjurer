@@ -2,24 +2,19 @@
  * Copyright (c) 2007-2011
  * University of Mannheim, Chair for Software-Engineering
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+ * Contributors:
+ *    Werner Janjic -- initial development and documentation
  */
 package de.uni_mannheim.swt.codeconjurer.ui.view;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -30,6 +25,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
@@ -41,11 +37,13 @@ import de.uni_mannheim.swt.codeconjurer.domain.listener.SearchEventListener;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.Result;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
+import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
+import de.uni_mannheim.swt.codeconjurer.ui.listener.UIListener;
 import de.uni_mannheim.swt.codeconjurer.ui.view.elements.CodePreview;
 import de.uni_mannheim.swt.codeconjurer.ui.view.elements.ResultTree;
 
 public class ResultView extends ViewPart implements SearchEventListener,
-		IPartListener2 {
+		UIListener, IPartListener2 {
 
 	private Label statusLabel;
 	private CodePreview preview;
@@ -67,6 +65,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	 * Create View for results.
 	 */
 	public void createPartControl(Composite parent) {
+		PluginUI.addUIListener(this);
+		createToolbarActions();
 
 		/* A small status bar on top */
 		Composite top = new Composite(parent, SWT.FILL);
@@ -118,14 +118,45 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		CodeConjurer.getInstance().addSearchEventListener(this);
 		getSite().getPage().addPartListener(this);
 
-		onEvent(null);
+		onEvent(UIEvent.CREATED);
+	}
+
+	/**
+	 * Create small icons in the view
+	 */
+	private void createToolbarActions() {
+		IActionBars bars = getViewSite().getActionBars();
+		Action searchAction = new Action() {
+			@Override
+			public void run() {
+				logger.debug("Perform a search");
+				CodeConjurer.getInstance().search();
+			}
+		};
+		searchAction.setText("Search Reusable Code");
+		searchAction.setImageDescriptor(Activator
+				.getImageDescriptor("icons/code_conjurer_m.png"));
+		bars.getToolBarManager().add(searchAction);
+		Action refreshAction = new Action() {
+			@Override
+			public void run() {
+				logger.debug("Refresh View");
+				onEvent(UIEvent.REFRESH);
+			}
+		};
+		refreshAction.setText("Refresh Result View");
+		refreshAction.setImageDescriptor(Activator
+				.getImageDescriptor("icons/refresh.png"));
+		bars.getToolBarManager().add(refreshAction);
 	}
 
 	@Override
 	public void onEvent(SearchEvent event) {
 		logger.debug("Event: " + event);
 		final ResultView view = this;
-		if (event != null && event != SearchEvent.SOURCE_ADDED) {
+		// An update of the tree should happen at all changes except for a
+		// successfully downloaded source (to prevent flickering)
+		if (event != SearchEvent.SOURCE_ADDED) {
 			logger.debug("Refresh ResultTres");
 			PluginUI.getWindow().getWorkbench().getDisplay()
 					.asyncExec(new Runnable() {
@@ -149,17 +180,34 @@ public class ResultView extends ViewPart implements SearchEventListener,
 			logger.debug("Update Statusline");
 			updateStatus();
 		}
+	}
 
-		// Request from user to set preferences
-		boolean noServer = Activator.getDefault().getPreferenceStore()
-				.getString(PreferenceConstants.P_SERVER).equals("");
-		boolean noUsername = Activator.getDefault().getPreferenceStore()
-				.getString(PreferenceConstants.P_USERNAME).equals("");
-		boolean noPassword = Activator.getDefault().getPreferenceStore()
-				.getString(PreferenceConstants.P_PASSWORD).equals("");
-
-		if (noServer || noUsername || noPassword) {
-			preview.setCode("Please set Code Conjurer " + "Preferences first.");
+	@Override
+	public void onEvent(UIEvent event) {
+		final ResultView view = this;
+		if (event == UIEvent.REFRESH) {
+			logger.debug("Refresh ResultTres");
+			PluginUI.getWindow().getWorkbench().getDisplay()
+					.asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							resultTree.refresh();
+							TreeItem selection = resultTree
+									.getSelectedElement();
+							if (selection != null)
+								preview.setCode(selection.getData().toString());
+							// Indicate that something has happened and add a
+							// star to the view's title
+							String name = view.getPartName();
+							if (!name.contains("*")
+									&& !(getSite().getPage()
+											.isPartVisible(view))) {
+								view.setPartName("* " + view.getPartName());
+							}
+						}
+					});
+			logger.debug("Update Statusline");
+			updateStatus();
 		}
 	}
 
@@ -270,17 +318,33 @@ public class ResultView extends ViewPart implements SearchEventListener,
 			@Override
 			public void run() {
 				logger.debug("Status refresh thread");
-				Search search = CodeConjurer.getInstance().getActiveSearch();
+
+				// Request from user to set preferences
+				boolean noServer = Activator.getDefault().getPreferenceStore()
+						.getString(PreferenceConstants.P_SERVER).equals("");
+				boolean noUsername = Activator.getDefault()
+						.getPreferenceStore()
+						.getString(PreferenceConstants.P_USERNAME).equals("");
+				boolean noPassword = Activator.getDefault()
+						.getPreferenceStore()
+						.getString(PreferenceConstants.P_PASSWORD).equals("");
 				String message = "";
-				if (search != null) {
-					Result result = search.getSearchResult();
-					message = (result.getResultItems().length
-							+ " Results Found. "
-							+ result.getNumberOfSuccessfullyFetchedSources()
-							+ " items successfully fetched. :: Result created " + result
-							.getCreationDate());
+
+				if (noServer || noUsername || noPassword) {
+					message = "Please setup preferences first. Go to Eclipse -> Preferences -> Code Conjurer.";
 				} else {
-					message = ("No search results available.");
+					Search search = CodeConjurer.getInstance()
+							.getActiveSearch();
+					if (search != null) {
+						Result result = search.getSearchResult();
+						message = (result.getResultItems().length
+								+ " Results Found. "
+								+ result.getNumberOfSuccessfullyFetchedSources()
+								+ " items successfully fetched. :: Result created " + result
+								.getCreationDate());
+					} else {
+						message = ("No search results available.");
+					}
 				}
 				statusLabel.setText("Code Conjurer :: " + message);
 				statusLabel.pack();

@@ -2,19 +2,13 @@
  * Copyright (c) 2007-2011
  * University of Mannheim, Chair for Software-Engineering
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+ * Contributors:
+ *    Werner Janjic -- initial development and documentation
  */
 package de.uni_mannheim.swt.codeconjurer.domain.search;
 
@@ -23,6 +17,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.IEditorPart;
 
+import com.merotronics.merobase.ws.action.IOException_Exception;
 import com.merotronics.merobase.ws.client.util.WSConnection;
 
 import de.uni_mannheim.swt.codeconjurer.Activator;
@@ -62,8 +57,6 @@ public class StandardSearch extends Search {
 			// Wait for results
 			int loop = 0;
 			while (!ws.isFinished()) {
-				// Poll for new results
-				ws.getResults(session, username, password);
 				if (monitor.isCanceled()) {
 					logger.debug("Enable searching again.");
 					notifySearchEventListeners(SearchEvent.CANCELLED);
@@ -77,7 +70,7 @@ public class StandardSearch extends Search {
 				Thread.sleep(sleep);
 			}
 			// Store results
-			result.addResultList(ws.getResults(session, username, password));
+			result.addResultList(ws.getResults(session));
 			notifySearchEventListeners(SearchEvent.RESULT_ADDED);
 
 			monitor.beginTask("Fetch Sourcecode", result.size());
@@ -89,7 +82,7 @@ public class StandardSearch extends Search {
 				try {
 					source = ws.componentSource(
 							r.getProperty(ResultProperty.SHORT_URL), username,
-							password);
+							password, 10);
 				} catch (Exception e) {
 					logger.debug(e.getLocalizedMessage());
 				}
@@ -103,6 +96,10 @@ public class StandardSearch extends Search {
 					return Status.CANCEL_STATUS;
 				}
 			}
+		} catch (IOException_Exception e) {
+			logger.debug(e.getLocalizedMessage());
+			notifySearchEventListeners(SearchEvent.ERROR);
+			return Status.CANCEL_STATUS;
 		} catch (Exception e) {
 			logger.debug(e.getLocalizedMessage());
 			notifySearchEventListeners(SearchEvent.ERROR);

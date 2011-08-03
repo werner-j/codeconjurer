@@ -10,19 +10,12 @@
  * Contributors:
  *    Werner Janjic -- initial development and documentation
  */
-package de.uni_mannheim.swt.codeconjurer.domain.preferences;
+package de.uni_mannheim.swt.codeconjurer.ui.listener;
 
 /**
- * Constant definitions for plug-in preferences
+ * @author Werner Janjic
+ * 
  */
-public class PreferenceConstants {
-
-	public static final String P_SERVER = "merobaseServer";
-
-	public static final String P_USERNAME = "username";
-
-	public static final String P_PASSWORD = "password";
-
-	public static final String P_RESULTS = "numberOfResultsToRetrieve";
-
+public enum UIEvent {
+	CREATED, REFRESH
 }

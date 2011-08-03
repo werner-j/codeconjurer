@@ -2,27 +2,26 @@
  * Copyright (c) 2007-2011
  * University of Mannheim, Chair for Software-Engineering
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+ * Contributors:
+ *    Werner Janjic -- initial development and documentation
  */
 package de.uni_mannheim.swt.codeconjurer.ui.view;
+
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
+
+import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
+import de.uni_mannheim.swt.codeconjurer.ui.listener.UIListener;
 
 /**
  * @author Werner Janjic
@@ -33,6 +32,8 @@ public class PluginUI {
 	private static Logger logger = Logger.getLogger(PluginUI.class);
 
 	private static IWorkbenchWindow window;
+
+	private static ArrayList<UIListener> listeners = new ArrayList<UIListener>();
 
 	public static IWorkbenchWindow getWindow() {
 		return window;
@@ -59,6 +60,9 @@ public class PluginUI {
 		return editor;
 	}
 
+	/**
+	 * Show recommendations view in workbench
+	 */
 	public static void showRecommendationsView() {
 		PluginUI.getWindow().getWorkbench().getDisplay()
 				.asyncExec(new Runnable() {
@@ -77,6 +81,36 @@ public class PluginUI {
 						}
 					}
 				});
+	}
+
+	/**
+	 * Add listener to UI Events
+	 * 
+	 * @param listener
+	 */
+	public static void addUIListener(UIListener listener) {
+		listeners.add(listener);
+	}
+
+	/**
+	 * Remove listener from UI Events
+	 * 
+	 * @param listener
+	 * @return
+	 */
+	public static boolean removeUIListener(UIListener listener) {
+		return listeners.remove(listener);
+	}
+
+	/**
+	 * Fire UI Event and notify listeners
+	 * 
+	 * @param event
+	 */
+	public static void fireEvent(UIEvent event) {
+		for (UIListener listener : listeners) {
+			listener.onEvent(event);
+		}
 	}
 
 }
