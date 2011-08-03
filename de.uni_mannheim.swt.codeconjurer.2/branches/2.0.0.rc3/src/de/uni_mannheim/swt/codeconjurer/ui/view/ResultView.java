@@ -178,7 +178,11 @@ public class ResultView extends ViewPart implements SearchEventListener,
 						}
 					});
 			logger.debug("Update Statusline");
-			updateStatus();
+			if (event == SearchEvent.SERVERERROR) {
+				updateStatus("A server error occured during the search. Check your settings and contact the administrator if this problem persists.");
+			} else {
+				updateStatus();
+			}
 		}
 	}
 
@@ -308,12 +312,16 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 	}
 
+	public void updateStatus() {
+		updateStatus("");
+	}
+
 	/**
 	 * Set the statusline of the result view
 	 * 
 	 * @param message
 	 */
-	public void updateStatus() {
+	public void updateStatus(final String msg) {
 		PluginUI.getWindow().getShell().getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -329,24 +337,33 @@ public class ResultView extends ViewPart implements SearchEventListener,
 						.getPreferenceStore()
 						.getString(PreferenceConstants.P_PASSWORD).equals("");
 				String message = "";
-
-				if (noServer || noUsername || noPassword) {
-					message = "Please setup preferences first. Go to Eclipse -> Preferences -> Code Conjurer.";
-				} else {
-					Search search = CodeConjurer.getInstance()
-							.getActiveSearch();
-					if (search != null) {
-						Result result = search.getSearchResult();
-						message = (result.getResultItems().length
-								+ " Results Found. "
-								+ result.getNumberOfSuccessfullyFetchedSources()
-								+ " items successfully fetched. :: Result created " + result
-								.getCreationDate());
+				if (msg.equals("")) {
+					if (noServer || noUsername || noPassword) {
+						message = "Please setup preferences first. Go to Eclipse -> Preferences -> Code Conjurer.";
 					} else {
-						message = ("No search results available.");
+						Search search = CodeConjurer.getInstance()
+								.getActiveSearch();
+
+						if (search != null) {
+							Result result = search.getSearchResult();
+							int results = result.getResultItems().length;
+							if (results > 0) {
+								message = (results
+										+ " Results Found. "
+										+ result.getNumberOfSuccessfullyFetchedSources()
+										+ " items successfully fetched. :: Result created " + result
+										.getCreationDate());
+							} else {
+								message = "No results.";
+							}
+						} else {
+							message = ("No search results available.");
+						}
 					}
+				} else {
+					message = msg;
 				}
-				statusLabel.setText("Code Conjurer :: " + message);
+				statusLabel.setText("[Code Conjurer] " + message);
 				statusLabel.pack();
 				statusLabel.getParent().pack();
 			}

@@ -12,12 +12,15 @@
  */
 package de.uni_mannheim.swt.codeconjurer.domain.search;
 
+import java.util.ArrayList;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.IEditorPart;
 
 import com.merotronics.merobase.ws.action.IOException_Exception;
+import com.merotronics.merobase.ws.action.ResultBean;
 import com.merotronics.merobase.ws.client.util.WSConnection;
 
 import de.uni_mannheim.swt.codeconjurer.Activator;
@@ -49,8 +52,17 @@ public class StandardSearch extends Search {
 
 		try {
 			WSConnection ws = new WSConnection(serverLocation);
-			String session = ws.initComponentSearch(query.getMqlQuery(),
-					username, password, numResults);
+			String session = "";
+			try {
+				logger.debug("Initialize search for " + numResults
+						+ " components.");
+				session = ws.initComponentSearch(query.getMqlQuery(), username,
+						password, numResults);
+				logger.debug("Received session id: " + session);
+			} catch (IOException_Exception e1) {
+				logger.debug("Problem initializing search: "
+						+ e1.getLocalizedMessage());
+			}
 
 			notifySearchEventListeners(SearchEvent.STARTED);
 
@@ -70,7 +82,10 @@ public class StandardSearch extends Search {
 				Thread.sleep(sleep);
 			}
 			// Store results
-			result.addResultList(ws.getResults(session));
+			ArrayList<ResultBean> results = ws.getResults(session);
+			logger.debug("Webservice returned " + results.size()
+					+ " results from Merobase.");
+			result.addResultList(results);
 			notifySearchEventListeners(SearchEvent.RESULT_ADDED);
 
 			monitor.beginTask("Fetch Sourcecode", result.size());
@@ -85,6 +100,7 @@ public class StandardSearch extends Search {
 							password, 10);
 				} catch (Exception e) {
 					logger.debug(e.getLocalizedMessage());
+					source = "/** Source could not be fetched */";
 				}
 				result.addSource(r.getProperty(ResultProperty.SHORT_URL),
 						source);
@@ -96,13 +112,9 @@ public class StandardSearch extends Search {
 					return Status.CANCEL_STATUS;
 				}
 			}
-		} catch (IOException_Exception e) {
-			logger.debug(e.getLocalizedMessage());
-			notifySearchEventListeners(SearchEvent.ERROR);
-			return Status.CANCEL_STATUS;
 		} catch (Exception e) {
-			logger.debug(e.getLocalizedMessage());
-			notifySearchEventListeners(SearchEvent.ERROR);
+			logger.debug("Exception: " + e.getLocalizedMessage());
+			notifySearchEventListeners(SearchEvent.SERVERERROR);
 			return Status.CANCEL_STATUS;
 		}
 		notifySearchEventListeners(SearchEvent.FINISHED);

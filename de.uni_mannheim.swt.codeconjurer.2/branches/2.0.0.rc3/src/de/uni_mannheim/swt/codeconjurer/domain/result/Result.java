@@ -120,7 +120,8 @@ public class Result extends Observable {
 	 * @param source
 	 */
 	public void addSource(String shortUrl, String source) {
-		if (source != null && !source.equals("null")) {
+		if (source != null && !source.equals("null")
+				&& !source.contains("/** Source could not be fetched */")) {
 			logger.debug("Add source for " + shortUrl);
 			resultItems.get(shortUrl).setSource(
 					"// Brought to you by merobase.com\r\n// Origin: \r\n// "
@@ -130,7 +131,8 @@ public class Result extends Observable {
 			logger.debug("Source for " + shortUrl + " not available");
 			source = "// Sourcecode for " + shortUrl + "\r\n// not available.";
 			resultItems.get(shortUrl).setSource(source);
-			successfulSources.put(shortUrl, source);
+			// successfulSources.put(shortUrl, source);
+			successfulSources.remove(shortUrl);
 		}
 		setChanged();
 		notifyObservers();
