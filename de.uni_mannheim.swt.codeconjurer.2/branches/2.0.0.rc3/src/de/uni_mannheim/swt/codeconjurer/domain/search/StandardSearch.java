@@ -37,10 +37,6 @@ public class StandardSearch extends Search {
 
 	@Override
 	protected IStatus run(IProgressMonitor monitor) {
-		// String serverLocation = "http://10.1.83.19:8080";
-		// String serverLocation = "http://www.merobase.com";
-		// String username = "statistics";
-		// String password = "statistics";
 		String serverLocation = Activator.getDefault().getPreferenceStore()
 				.getString(PreferenceConstants.P_SERVER);
 		String username = Activator.getDefault().getPreferenceStore()
@@ -55,7 +51,7 @@ public class StandardSearch extends Search {
 			String session = "";
 			try {
 				logger.debug("Initialize search for " + numResults
-						+ " components.");
+						+ " components at " + serverLocation + ".");
 				session = ws.initComponentSearch(query.getMqlQuery(), username,
 						password, numResults);
 				logger.debug("Received session id: " + session);
