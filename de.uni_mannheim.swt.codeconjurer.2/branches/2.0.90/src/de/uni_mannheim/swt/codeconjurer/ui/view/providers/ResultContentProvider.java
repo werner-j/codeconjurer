@@ -13,10 +13,12 @@
 package de.uni_mannheim.swt.codeconjurer.ui.view.providers;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -85,8 +87,19 @@ public class ResultContentProvider implements ITreeContentProvider {
 	@Override
 	public Object[] getChildren(Object parentElement) {
 		BodyDeclaration element = (BodyDeclaration) parentElement;
+		ArrayList<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
 		if (element.getNodeType() == ASTNode.TYPE_DECLARATION) {
-			return ((TypeDeclaration) element).getMethods();
+			for (MethodDeclaration method : ((TypeDeclaration) element)
+					.getMethods()) {
+				// Copy properties fromt class to methods
+				Set<?> properties = element.properties().keySet();
+				for (String property : (String[]) properties
+						.toArray(new String[element.properties().size()])) {
+					method.setProperty(property, element.getProperty(property));
+				}
+				methods.add(method);
+			}
+			return methods.toArray();
 		}
 		return null;
 	}

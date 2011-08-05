@@ -64,9 +64,8 @@ public class Result extends Observable {
 	 */
 	public void addResultList(ArrayList<ResultBean> results) {
 		for (ResultBean result : results) {
-			String shortUrl = result.getShortUrl();
-			ResultItem resultItem = new ResultItem(shortUrl, result.getName());
-			resultItems.put(shortUrl, resultItem);
+			ResultItem resultItem = new ResultItem(result);
+			resultItems.put(result.getShortUrl(), resultItem);
 		}
 		setChanged();
 		notifyObservers();
@@ -80,9 +79,8 @@ public class Result extends Observable {
 	public void setResultList(ArrayList<ResultBean> results) {
 		resultItems = new HashMap<String, ResultItem>();
 		for (ResultBean result : results) {
-			String shortUrl = result.getShortUrl();
-			ResultItem resultItem = new ResultItem(shortUrl, result.getName());
-			resultItems.put(shortUrl, resultItem);
+			ResultItem resultItem = new ResultItem(result);
+			resultItems.put(result.getShortUrl(), resultItem);
 		}
 		setChanged();
 		notifyObservers();

@@ -32,7 +32,7 @@ import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 public class StandardSearch extends Search {
 
 	public StandardSearch(IEditorPart editor, String name, Query query) {
-		super(editor, name + query.getMqlQuery(), query);
+		super(editor, name, query);
 	}
 
 	@Override
@@ -52,7 +52,12 @@ public class StandardSearch extends Search {
 			try {
 				logger.debug("Initialize search for " + numResults
 						+ " components at " + serverLocation + ".");
-				session = ws.initComponentSearch(query.getMqlQuery(), username,
+				String queryString = query.getQuery();
+				if (queryString.equals("")) {
+					notifySearchEventListeners(SearchEvent.ERROR);
+					return Status.CANCEL_STATUS;
+				}
+				session = ws.initComponentSearch(queryString, username,
 						password, numResults);
 				logger.debug("Received session id: " + session);
 			} catch (IOException_Exception e1) {
@@ -60,11 +65,20 @@ public class StandardSearch extends Search {
 						+ e1.getLocalizedMessage());
 			}
 
+			if (session.contains("Invalid Username or Password")) {
+				notifySearchEventListeners(SearchEvent.SERVERERROR);
+				return Status.CANCEL_STATUS;
+			}
 			notifySearchEventListeners(SearchEvent.STARTED);
 
 			// Wait for results
 			int loop = 0;
 			while (!ws.isFinished()) {
+
+				// TODO: remove later
+				ArrayList<ResultBean> results = ws.getResults(session);
+				results.getClass();
+
 				if (monitor.isCanceled()) {
 					logger.debug("Enable searching again.");
 					notifySearchEventListeners(SearchEvent.CANCELLED);

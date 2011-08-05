@@ -124,9 +124,9 @@ public class CodeConjurer {
 				.getEditorInput());
 		Query query = new Query(typeRoot);
 		logger.debug("Sourcecode\r\n" + query.getSource() + "\r\n");
-		logger.debug("Query: " + query.getMqlQuery());
-		final StandardSearch search = new StandardSearch(editor, "Search for ",
-				query);
+		logger.debug("Query: " + query.getQuery());
+		final StandardSearch search = new StandardSearch(editor,
+				"Search for reusable assets for " + editor.getTitle(), query);
 		// Delegate the search event listeners to the search
 		for (SearchEventListener listener : listeners) {
 			search.addSearchEventListener(listener);

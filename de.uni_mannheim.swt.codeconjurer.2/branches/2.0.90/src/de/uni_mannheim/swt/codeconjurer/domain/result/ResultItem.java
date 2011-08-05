@@ -21,6 +21,8 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
+import com.merotronics.merobase.ws.action.ResultBean;
+
 /**
  * @author Werner Janjic
  * 
@@ -39,9 +41,11 @@ public class ResultItem {
 	 * @param shortUrl
 	 * @param source
 	 */
-	public ResultItem(String shortUrl, String name) {
-		properties.put(ResultProperty.SHORT_URL, shortUrl);
-		properties.put(ResultProperty.NAME, name);
+	public ResultItem(ResultBean rb) {
+		properties.put(ResultProperty.SHORT_URL, rb.getShortUrl());
+		properties.put(ResultProperty.NAME, rb.getName());
+		properties.put(ResultProperty.EXECUTABILITY, rb.getExecutability()
+				.value());
 	}
 
 	/**
@@ -98,6 +102,10 @@ public class ResultItem {
 							.equals(getProperty(ResultProperty.NAME)))
 						typeDec = type;
 				}
+			}
+			if (typeDec != null) {
+				typeDec.setProperty("executability",
+						properties.get(ResultProperty.EXECUTABILITY));
 			}
 			return typeDec;
 		} else {

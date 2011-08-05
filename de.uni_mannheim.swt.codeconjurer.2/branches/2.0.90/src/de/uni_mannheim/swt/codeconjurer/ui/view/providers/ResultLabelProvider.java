@@ -72,19 +72,21 @@ public class ResultLabelProvider extends LabelProvider implements
 	public Color getForeground(Object item, int columnIndex) {
 		BodyDeclaration element = (BodyDeclaration) item;
 		Color color = Display.getCurrent().getSystemColor(SWT.COLOR_BLACK);
-		String source = element.toString();
-		if (source != null && !source.equals("")) {
-			color = Display.getCurrent().getSystemColor(SWT.COLOR_BLACK);
-		} else {
-			color = Display.getCurrent().getSystemColor(SWT.COLOR_GRAY);
+		if (element.getProperty("executability").equals("TESTED")) {
+			color = Display.getCurrent().getSystemColor(SWT.COLOR_WHITE);
 		}
 		return color;
 	}
 
 	@Override
-	public Color getBackground(Object element, int columnIndex) {
-		// TODO Auto-generated method stub
-		return Display.getCurrent().getSystemColor(SWT.COLOR_WHITE);
+	public Color getBackground(Object item, int columnIndex) {
+		BodyDeclaration element = (BodyDeclaration) item;
+		Color color = Display.getCurrent().getSystemColor(
+				SWT.COLOR_WHITE);
+		if (element.getProperty("executability").equals("TESTED")) {
+			color = Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN);
+		}
+		return color;
 	}
 
 }

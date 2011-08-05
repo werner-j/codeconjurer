@@ -44,7 +44,7 @@ public class Activator extends AbstractUIPlugin {
 		PatternLayout layout = new PatternLayout("%-5p %c{1}: %m%n");
 		ConsoleAppender appender = new ConsoleAppender(layout);
 		Logger.getRootLogger().addAppender(appender);
-		Logger.getRootLogger().setLevel(Level.INFO);
+		Logger.getRootLogger().setLevel(Level.ALL);
 		Logger.getLogger(Activator.class).debug(
 				"Code Conjurer plug-in loaded...");
 	}

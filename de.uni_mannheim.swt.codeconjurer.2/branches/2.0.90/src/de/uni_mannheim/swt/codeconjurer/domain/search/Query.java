@@ -48,14 +48,45 @@ public class Query {
 	}
 
 	/**
+	 * Returns the primary type of this query as String
+	 * 
+	 * @return
+	 */
+	public String getPrimaryType() {
+		return typeRoot.findPrimaryType().getElementName();
+	}
+
+	/**
+	 * Returns an MQL query for interface-based searches or the sourcecode if a
+	 * testcase is being edited
+	 * 
+	 * @return
+	 */
+	public String getQuery() {
+		String query = "";
+		IType primaryType = typeRoot.findPrimaryType();
+		String superclass = "";
+		try {
+			superclass = primaryType.getSuperclassName();
+			if (superclass != null && superclass.equals("TestCase")) {
+				query = primaryType.getSource();
+			} else {
+				query = getMqlQuery(primaryType);
+			}
+		} catch (Exception e) {
+			logger.debug(e.getLocalizedMessage());
+		}
+		return query;
+	}
+
+	/**
 	 * Returns an MQL representation of the query
 	 * 
 	 * @return
 	 */
-	public String getMqlQuery() {
+	public String getMqlQuery(IType primaryType) {
 		StringBuilder query = new StringBuilder();
 
-		IType primaryType = typeRoot.findPrimaryType();
 		query.append(primaryType.getElementName());
 		try {
 			query.append(" ( ");
