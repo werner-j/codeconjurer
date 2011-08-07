@@ -108,7 +108,6 @@ public class ResultTree {
 		display.asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				logger.debug("Refresh " + treeViewer);
 				if (treeViewer != null) {
 					Search oldInput = (Search) treeViewer.getInput();
 					Search newInput = CodeConjurer.getInstance()
@@ -126,11 +125,17 @@ public class ResultTree {
 						if (newInput == null) {
 							return;
 						}
+						try {
 						if (selection != null && selection.length > 0)
 							treeViewer.getTree().setSelection(selection);
 						if (expandedElements != null
 								&& expandedElements.length > 0)
 							treeViewer.setExpandedElements(expandedElements);
+						} catch (Exception e) {
+							logger.debug("Exception setting tree status: " + e.getLocalizedMessage());
+							logger.debug("Selection is " + selection);
+							logger.debug("Expanded Elements are " + expandedElements);
+						}
 					}
 				}
 			}

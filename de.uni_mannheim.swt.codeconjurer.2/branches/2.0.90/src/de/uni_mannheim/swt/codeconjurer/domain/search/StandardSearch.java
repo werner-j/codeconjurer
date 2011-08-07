@@ -77,7 +77,7 @@ public class StandardSearch extends Search {
 
 				// TODO: remove later
 				ArrayList<ResultBean> results = ws.getResults(session);
-				results.getClass();
+				result.addResultList(results);
 
 				if (monitor.isCanceled()) {
 					logger.debug("Enable searching again.");
@@ -95,7 +95,7 @@ public class StandardSearch extends Search {
 			ArrayList<ResultBean> results = ws.getResults(session);
 			logger.debug("Webservice returned " + results.size()
 					+ " results from Merobase.");
-			result.addResultList(results);
+			result.setResultList(results);
 			notifySearchEventListeners(SearchEvent.RESULT_ADDED);
 
 			monitor.beginTask("Fetch Sourcecode", result.size());
