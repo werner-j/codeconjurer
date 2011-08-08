@@ -12,7 +12,7 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.dnd;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -34,7 +34,10 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
+import de.uni_mannheim.swt.codeconjurer.Activator;
 import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
+import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
+import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 /**
@@ -70,8 +73,18 @@ public class SourceDragListener implements DragSourceListener {
 	public void dragSetData(DragSourceEvent event) {
 		TreeItem selection = viewer.getTree().getSelection()[0];
 		BodyDeclaration selectionData = (BodyDeclaration) selection.getData();
+		String licText = selectionData.getProperty(ResultProperty.LICENSE
+				.name()) + "";
+		String license = "";
+		if (!licText.equals("no license")) {
+			license = "// Code released under the terms of the " + licText
+					+ "\r\n";
+		}
+		String transferString = license + "// "
+				+ selectionData.getProperty(ResultProperty.SHORT_URL.name())
+				+ "\r\n" + selectionData.toString();
 		if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-			event.data = selectionData.toString();
+			event.data = transferString;
 		}
 		logger.debug("Transfer data:\r\n" + event.data);
 	}
@@ -94,8 +107,16 @@ public class SourceDragListener implements DragSourceListener {
 			logger.debug(e1.getLocalizedMessage());
 		}
 
-		// take default Eclipse formatting options
-		HashMap<String, String> options = new HashMap<String, String>();
+		// If we shouldn't format the source code -- exit.
+		if (!Activator.getDefault().getPreferenceStore()
+				.getString(PreferenceConstants.P_FORMAT).equals("true")) {
+			return;
+		}
+
+		// Take default Eclipse formatting options
+		@SuppressWarnings("unchecked")
+		Map<String, String> options = DefaultCodeFormatterConstants
+				.getEclipseDefaultSettings();
 
 		// initialize the compiler settings to be able to format 1.6
 		// code
@@ -140,5 +161,4 @@ public class SourceDragListener implements DragSourceListener {
 			}
 		}
 	}
-
 }

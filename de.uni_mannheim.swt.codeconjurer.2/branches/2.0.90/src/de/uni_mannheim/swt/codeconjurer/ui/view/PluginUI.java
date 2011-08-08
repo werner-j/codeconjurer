@@ -63,18 +63,26 @@ public class PluginUI {
 	/**
 	 * Show recommendations view in workbench
 	 */
-	public static void showRecommendationsView() {
+	public static void showRecommendationsView(final boolean inBackground) {
 		PluginUI.getWindow().getWorkbench().getDisplay()
 				.asyncExec(new Runnable() {
 
 					@Override
 					public void run() {
 						try {
-							PluginUI.getWindow()
-									.getActivePage()
-									.showView(
-											"com.merobase.app.codeconjurer.views.ResultView",
-											null, IWorkbenchPage.VIEW_ACTIVATE);
+							if (inBackground) {
+								PluginUI.getWindow()
+										.getActivePage()
+										.showView(
+												"com.merobase.app.codeconjurer.views.ResultView",
+												null,
+												IWorkbenchPage.VIEW_VISIBLE);
+							} else {
+								PluginUI.getWindow()
+										.getActivePage()
+										.showView(
+												"com.merobase.app.codeconjurer.views.ResultView");
+							}
 						} catch (PartInitException e1) {
 							logger.debug("Could not open Reuse View!\r\n"
 									+ e1.getLocalizedMessage());

@@ -12,6 +12,7 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.preferences;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
@@ -57,6 +58,9 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 		// Choose between 5 and 100 results
 		addField(new SliderFieldEditor(PreferenceConstants.P_RESULTS,
 				"&Results per Search:", 5, 105, 5, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PreferenceConstants.P_FORMAT,
+				"Format Code on Insertion", BooleanFieldEditor.SEPARATE_LABEL,
+				getFieldEditorParent()));
 	}
 
 	/*

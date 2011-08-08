@@ -138,4 +138,27 @@ public class Query {
 	private String getSimpleName(String signature) {
 		return Signature.getSignatureSimpleName(signature).toString();
 	}
+
+	/**
+	 * Returns the type of the search
+	 * 
+	 * @return a test-driven search returns "tds", an other kind "standard"
+	 */
+	public String getType() {
+		IType type = typeRoot.findPrimaryType();
+		if (type != null) {
+			try {
+				String superclass = type.getSuperclassName();
+				if (superclass != null) {
+					logger.debug("Query has superclass " + superclass);
+					return superclass.equals("TestCase") ? "tds" : "standard";
+				}
+			} catch (Exception e) {
+				logger.debug("No primary type found when trying to identify type.\r\n"
+						+ e.getMessage());
+				return "";
+			}
+		}
+		return "";
+	}
 }

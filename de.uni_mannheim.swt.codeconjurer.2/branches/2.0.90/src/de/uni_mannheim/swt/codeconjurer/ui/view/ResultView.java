@@ -45,20 +45,21 @@ import de.uni_mannheim.swt.codeconjurer.ui.view.elements.ResultTree;
 public class ResultView extends ViewPart implements SearchEventListener,
 		UIListener, IPartListener2 {
 
+	/* Variables */
 	private Label statusLabel;
 	private CodePreview preview;
 	private ResultTree resultTree;
 
-	private Logger logger = Logger.getLogger(ResultView.class);
+	private final String TITLE = "Reuse View";
 
-	/* Variables */
-	// private Label status;
+	private Logger logger = Logger.getLogger(ResultView.class);
 
 	public ResultView() {
 		super();
 	}
 
 	public void setFocus() {
+		statusLabel.setFocus();
 	}
 
 	/**
@@ -126,17 +127,39 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	 */
 	private void createToolbarActions() {
 		IActionBars bars = getViewSite().getActionBars();
-		Action searchAction = new Action() {
+		Action collapseAction = new Action() {
+			@Override
+			public void run() {
+				logger.debug("Collapse Results");
+				resultTree.collapseAll();
+			}
+		};
+		collapseAction.setText("Collapse Results");
+		collapseAction.setImageDescriptor(Activator
+				.getImageDescriptor("icons/collapse.png"));
+		bars.getToolBarManager().add(collapseAction);
+		Action expandAction = new Action() {
+			@Override
+			public void run() {
+				logger.debug("Expand Results");
+				resultTree.expandAll();
+			}
+		};
+		expandAction.setText("Expand Results");
+		expandAction.setImageDescriptor(Activator
+				.getImageDescriptor("icons/expand.png"));
+		bars.getToolBarManager().add(expandAction);
+		Action performSearchAction = new Action() {
 			@Override
 			public void run() {
 				logger.debug("Perform a search");
-				CodeConjurer.getInstance().search();
+				CodeConjurer.getInstance().search(false);
 			}
 		};
-		searchAction.setText("Search Reusable Code");
-		searchAction.setImageDescriptor(Activator
+		performSearchAction.setText("Search Reusable Code");
+		performSearchAction.setImageDescriptor(Activator
 				.getImageDescriptor("icons/code_conjurer_m.png"));
-		bars.getToolBarManager().add(searchAction);
+		bars.getToolBarManager().add(performSearchAction);
 		Action refreshAction = new Action() {
 			@Override
 			public void run() {
@@ -231,11 +254,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 						.asyncExec(new Runnable() {
 							@Override
 							public void run() {
-								String title = partRef.getTitle().substring(
-										partRef.getTitle().indexOf("*") + 1,
-										partRef.getTitle().length());
 								((ResultView) partRef.getPart(true))
-										.setPartName(title);
+										.setPartName(TITLE);
 							}
 						});
 			}
@@ -251,11 +271,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 						.asyncExec(new Runnable() {
 							@Override
 							public void run() {
-								String title = partRef.getTitle().substring(
-										partRef.getTitle().indexOf("*") + 1,
-										partRef.getTitle().length());
 								((ResultView) partRef.getPart(true))
-										.setPartName(title);
+										.setPartName(TITLE);
 							}
 						});
 			}
@@ -295,11 +312,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 						.asyncExec(new Runnable() {
 							@Override
 							public void run() {
-								String title = partRef.getTitle().substring(
-										partRef.getTitle().indexOf("*") + 1,
-										partRef.getTitle().length());
 								((ResultView) partRef.getPart(true))
-										.setPartName(title);
+										.setPartName(TITLE);
 							}
 						});
 			}
@@ -339,7 +353,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 				String message = "";
 				if (msg.equals("")) {
 					if (noServer || noUsername || noPassword) {
-						message = "Please setup preferences first. Go to Eclipse -> Preferences -> Code Conjurer.";
+						message = "Please set up preferences first. Go to Eclipse -> Preferences -> Code Conjurer.";
 					} else {
 						Search search = CodeConjurer.getInstance()
 								.getActiveSearch();

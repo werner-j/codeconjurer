@@ -30,6 +30,7 @@ import de.uni_mannheim.swt.codeconjurer.domain.listener.SearchEventListener;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Query;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
 import de.uni_mannheim.swt.codeconjurer.domain.search.StandardSearch;
+import de.uni_mannheim.swt.codeconjurer.domain.search.TestDrivenSearch;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 /**
@@ -108,7 +109,7 @@ public class CodeConjurer {
 	/**
 	 * Perform a search using the code from the active eclipse editor as input
 	 */
-	public void search() {
+	public void search(boolean byAgent) {
 		IEditorPart editor = PluginUI.getActiveEditor();
 		// If there is no active editor, a search cannot be performed
 		if (editor == null
@@ -118,15 +119,33 @@ public class CodeConjurer {
 			return;
 		}
 		logger.debug("Make sure the recommendations view is present...");
-		PluginUI.showRecommendationsView();
+		PluginUI.showRecommendationsView(true);
 		logger.debug("Fetch source from active editor");
 		ITypeRoot typeRoot = JavaUI.getEditorInputTypeRoot(editor
 				.getEditorInput());
 		Query query = new Query(typeRoot);
 		logger.debug("Sourcecode\r\n" + query.getSource() + "\r\n");
 		logger.debug("Query: " + query.getQuery());
-		final StandardSearch search = new StandardSearch(editor,
-				"Search for reusable assets for " + editor.getTitle(), query);
+		final Search search;
+		String querytype = query.getType();
+		if (querytype.equals("tds")) {
+			if (!byAgent) {
+				search = new TestDrivenSearch(editor, "Test-Driven Search for "
+						+ editor.getTitle(), query);
+				logger.debug("Test-Driven Search created");
+			} else {
+				// TODO: Implement a background-agent that reacts to JUnit
+				// assertions instead interface changes
+				logger.debug("We do not support test-driven searches triggered by the agent, yet. "
+						+ "We need a better algorithm for this.");
+				return;
+			}
+		} else {
+			search = new StandardSearch(editor,
+					"Search for reusable assets for " + editor.getTitle(),
+					query);
+			logger.debug("Standard Search created");
+		}
 		// Delegate the search event listeners to the search
 		for (SearchEventListener listener : listeners) {
 			search.addSearchEventListener(listener);

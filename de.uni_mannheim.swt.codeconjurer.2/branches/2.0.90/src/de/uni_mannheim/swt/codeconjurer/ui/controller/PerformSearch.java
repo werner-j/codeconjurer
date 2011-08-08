@@ -40,7 +40,7 @@ public class PerformSearch implements IWorkbenchWindowActionDelegate {
 	@Override
 	public void run(IAction action) {
 		logger.debug("Perform a search");
-		CodeConjurer.getInstance().search();
+		CodeConjurer.getInstance().search(false);
 	}
 
 	/*

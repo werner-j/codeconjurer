@@ -103,11 +103,11 @@ public class Result extends Observable {
 	 * @return
 	 */
 	public String getSource(String shortUrl) {
-		if (successfulSources.containsKey(shortUrl)) {
+		if (!successfulSources.containsKey(shortUrl)) {
 			return "// Sourcecode for " + shortUrl
 					+ "\r\n// not available from cache.";
 		} else {
-			return successfulSources.get(shortUrl);
+			return resultItems.get(shortUrl).getSource();
 		}
 	}
 

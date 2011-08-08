@@ -45,6 +45,7 @@ public class ResultTree {
 	private Logger logger = Logger.getLogger(ResultTree.class);
 
 	private TreeViewer treeViewer;
+	private Tree tree;
 	private ResultContentProvider resultContentProvider;
 	private ResultLabelProvider resultLabelProvider;
 
@@ -56,14 +57,30 @@ public class ResultTree {
 	 */
 	public ResultTree(Composite parent, int style,
 			ISelectionChangedListener listener) {
-		Tree tree = new Tree(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+		tree = new Tree(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		tree.setHeaderVisible(true);
+
 		TreeColumn colResource = new TreeColumn(tree, SWT.LEFT);
 		colResource.setText("Resource");
-		colResource.setWidth(250);
+		colResource.setWidth(200);
 		colResource.setMoveable(true);
 		colResource.setToolTipText("Shows the retrieved components in the "
 				+ "order provided by the merobase server.");
+
+		TreeColumn colLicense = new TreeColumn(tree, SWT.LEFT);
+		colLicense.setText("License");
+		colLicense.setWidth(100);
+		colLicense.setMoveable(true);
+		colLicense
+				.setToolTipText("The resource's license or 'no license' if not parseable / unknown license.");
+
+		TreeColumn colTested = new TreeColumn(tree, SWT.LEFT);
+		colTested.setText("JUnit");
+		colTested.setWidth(50);
+		colTested.setMoveable(true);
+		colTested
+				.setToolTipText("This column will be coloured green, if the artifact passed a server-side "
+						+ "JUnit test during a test-driven search.");
 
 		treeViewer = new TreeViewer(tree);
 		treeViewer.setUseHashlookup(true);
@@ -86,8 +103,8 @@ public class ResultTree {
 
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				// TODO Auto-generated method stub
-
+				logger.debug("Double Clicked on "
+						+ treeViewer.getTree().getSelection()[0].getText());
 			}
 		});
 	}
@@ -126,15 +143,18 @@ public class ResultTree {
 							return;
 						}
 						try {
-						if (selection != null && selection.length > 0)
-							treeViewer.getTree().setSelection(selection);
-						if (expandedElements != null
-								&& expandedElements.length > 0)
-							treeViewer.setExpandedElements(expandedElements);
+							if (selection != null && selection.length > 0)
+								treeViewer.getTree().setSelection(selection);
+							if (expandedElements != null
+									&& expandedElements.length > 0)
+								treeViewer
+										.setExpandedElements(expandedElements);
 						} catch (Exception e) {
-							logger.debug("Exception setting tree status: " + e.getLocalizedMessage());
+							logger.debug("Exception setting tree status: "
+									+ e.getLocalizedMessage());
 							logger.debug("Selection is " + selection);
-							logger.debug("Expanded Elements are " + expandedElements);
+							logger.debug("Expanded Elements are "
+									+ expandedElements);
 						}
 					}
 				}
@@ -159,4 +179,19 @@ public class ResultTree {
 			return null;
 		}
 	}
+
+	/**
+	 * Collapses all nodes of the tree starting at root.
+	 */
+	public void collapseAll() {
+		treeViewer.collapseAll();
+	}
+
+	/**
+	 * Expands all nodes of the tree starting at root.
+	 */
+	public void expandAll() {
+		treeViewer.expandAll();
+	}
+
 }

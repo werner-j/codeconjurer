@@ -46,6 +46,9 @@ public class ResultItem {
 		properties.put(ResultProperty.NAME, rb.getName());
 		properties.put(ResultProperty.EXECUTABILITY, rb.getExecutability()
 				.value());
+		properties.put(ResultProperty.LICENSE, rb.getLicense());
+		properties.put(ResultProperty.LICENSE_DESCRIPTION,
+				rb.getLicenseDescription());
 	}
 
 	/**
@@ -75,7 +78,9 @@ public class ResultItem {
 	 * @return
 	 */
 	public String getSource() {
-		return ("" + resultCompilationUnit.getJavaElement());
+		return ("// Sourcecode found by merobase.com\r\n" + "// "
+				+ properties.get(ResultProperty.SHORT_URL) + "\r\n" + resultCompilationUnit
+					.getJavaElement());
 	}
 
 	/**
@@ -104,8 +109,12 @@ public class ResultItem {
 				}
 			}
 			if (typeDec != null) {
-				typeDec.setProperty("executability",
+				typeDec.setProperty(ResultProperty.SHORT_URL.name(),
+						properties.get(ResultProperty.SHORT_URL));
+				typeDec.setProperty(ResultProperty.EXECUTABILITY.name(),
 						properties.get(ResultProperty.EXECUTABILITY));
+				typeDec.setProperty(ResultProperty.LICENSE.name(),
+						properties.get(ResultProperty.LICENSE));
 			}
 			return typeDec;
 		} else {

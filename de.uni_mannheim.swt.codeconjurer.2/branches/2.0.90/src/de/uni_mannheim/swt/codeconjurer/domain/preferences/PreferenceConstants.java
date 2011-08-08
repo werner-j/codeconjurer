@@ -25,4 +25,6 @@ public class PreferenceConstants {
 
 	public static final String P_RESULTS = "numberOfResultsToRetrieve";
 
+	public static final String P_FORMAT = "formatSourceOnInsert";
+
 }

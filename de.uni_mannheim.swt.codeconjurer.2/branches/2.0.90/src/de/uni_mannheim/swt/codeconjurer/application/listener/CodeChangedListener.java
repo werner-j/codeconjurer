@@ -49,15 +49,20 @@ public class CodeChangedListener implements IElementChangedListener {
 				return;
 			}
 
+			// Check if the affected type is a compilation unit
+			if (checkAffectedType(delta, IJavaElement.COMPILATION_UNIT)) {
+				logger.debug("Change to a compilation unit detected. Initiate search.");
+				CodeConjurer.getInstance().search(true);
+			}
 			// Check if the affected type is a class
 			if (checkAffectedType(delta, IJavaElement.TYPE)) {
 				logger.debug("Change to a type detected. Initiate search.");
-				CodeConjurer.getInstance().search();
+				CodeConjurer.getInstance().search(true);
 			}
 			// Check if the affected type is a method
 			if (checkAffectedType(delta, IJavaElement.METHOD)) {
 				logger.debug("Change to a method detected. Initiate search.");
-				CodeConjurer.getInstance().search();
+				CodeConjurer.getInstance().search(true);
 			}
 		}
 
