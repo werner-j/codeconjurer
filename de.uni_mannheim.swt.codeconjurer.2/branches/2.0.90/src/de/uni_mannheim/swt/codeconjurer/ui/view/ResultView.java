@@ -202,7 +202,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 					});
 			logger.debug("Update Statusline");
 			if (event == SearchEvent.SERVERERROR) {
-				updateStatus("A server error occured during the search. Check your settings and contact the administrator if this problem persists.");
+				updateStatus("A server error occured during the search. Check your settings "
+						+ "and contact the administrator if this problem persists.");
 			} else {
 				updateStatus();
 			}
@@ -248,7 +249,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 				preview.setCode(selection.getData().toString());
 		}
 		if (partRef.getId().equals(
-				"com.merobase.app.codeconjurer.views.ResultView")) {
+				"de.uni_mannheim.swt.codeconjurer.views.ResultView")) {
 			if (partRef.getTitle().contains("*")) {
 				partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
 						.asyncExec(new Runnable() {
@@ -265,7 +266,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	@Override
 	public void partBroughtToTop(final IWorkbenchPartReference partRef) {
 		if (partRef.getId().equals(
-				"com.merobase.app.codeconjurer.views.ResultView")) {
+				"de.uni_mannheim.swt.codeconjurer.views.ResultView")) {
 			if (partRef.getTitle().contains("*")) {
 				partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
 						.asyncExec(new Runnable() {
@@ -306,7 +307,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	@Override
 	public void partVisible(final IWorkbenchPartReference partRef) {
 		if (partRef.getId().equals(
-				"com.merobase.app.codeconjurer.views.ResultView")) {
+				"de.uni_mannheim.swt.codeconjurer.views.ResultView")) {
 			if (partRef.getTitle().contains("*")) {
 				partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
 						.asyncExec(new Runnable() {

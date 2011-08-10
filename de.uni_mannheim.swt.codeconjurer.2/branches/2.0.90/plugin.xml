@@ -4,15 +4,15 @@
    <extension
          point="org.eclipse.ui.views">
       <category
-            id="com.merobase.app.codeconjurer"
+            id="de.uni_mannheim.swt.codeconjurer"
             name="%code_conjurer.name">
       </category>
       <view
             allowMultiple="false"
-            category="com.merobase.app.codeconjurer"
+            category="de.uni_mannheim.swt.codeconjurer"
             class="de.uni_mannheim.swt.codeconjurer.ui.view.ResultView"
             icon="icons/code_conjurer_m.png"
-            id="com.merobase.app.codeconjurer.views.ResultView"
+            id="de.uni_mannheim.swt.codeconjurer.views.ResultView"
             name="%reuse_view.name">
       </view>
    </extension>

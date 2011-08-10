@@ -44,7 +44,7 @@ public class ShowReuseView implements IWorkbenchWindowActionDelegate {
 		try {
 			if (reuseView == null)
 				reuseView = window.getActivePage().showView(
-						"com.merobase.app.codeconjurer.views.ResultView");
+						"de.uni_mannheim.swt.codeconjurer.views.ResultView");
 			else
 				reuseView.setFocus();
 		} catch (Exception e) {

@@ -74,14 +74,14 @@ public class PluginUI {
 								PluginUI.getWindow()
 										.getActivePage()
 										.showView(
-												"com.merobase.app.codeconjurer.views.ResultView",
+												"de.uni_mannheim.swt.codeconjurer.views.ResultView",
 												null,
 												IWorkbenchPage.VIEW_VISIBLE);
 							} else {
 								PluginUI.getWindow()
 										.getActivePage()
 										.showView(
-												"com.merobase.app.codeconjurer.views.ResultView");
+												"de.uni_mannheim.swt.codeconjurer.views.ResultView");
 							}
 						} catch (PartInitException e1) {
 							logger.debug("Could not open Reuse View!\r\n"
