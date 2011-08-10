@@ -66,6 +66,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	 * Create View for results.
 	 */
 	public void createPartControl(Composite parent) {
+		this.showBusy(true);
 		PluginUI.addUIListener(this);
 		createToolbarActions();
 
@@ -120,6 +121,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		getSite().getPage().addPartListener(this);
 
 		onEvent(UIEvent.CREATED);
+		this.showBusy(false);
 	}
 
 	/**
@@ -212,6 +214,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 	@Override
 	public void onEvent(UIEvent event) {
+		this.showBusy(true);
 		final ResultView view = this;
 		if (event == UIEvent.REFRESH) {
 			logger.debug("Refresh ResultTres");
@@ -237,6 +240,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 			logger.debug("Update Statusline");
 			updateStatus();
 		}
+		this.showBusy(false);
 	}
 
 	@Override
@@ -336,7 +340,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	 * 
 	 * @param message
 	 */
-	public void updateStatus(final String msg) {
+	private void updateStatus(final String msg) {
 		PluginUI.getWindow().getShell().getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
@@ -378,9 +382,11 @@ public class ResultView extends ViewPart implements SearchEventListener,
 				} else {
 					message = msg;
 				}
-				statusLabel.setText("[Code Conjurer] " + message);
-				statusLabel.pack();
-				statusLabel.getParent().pack();
+				if (statusLabel != null && !statusLabel.isDisposed()) {
+					statusLabel.setText("[Code Conjurer] " + message);
+					statusLabel.pack();
+					statusLabel.getParent().pack();
+				}
 			}
 		});
 		logger.debug("Status refreshed!");

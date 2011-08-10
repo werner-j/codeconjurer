@@ -15,9 +15,10 @@ package de.uni_mannheim.swt.codeconjurer.ui.controller;
 import org.apache.log4j.Logger;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
+
+import de.uni_mannheim.swt.codeconjurer.ui.view.ResultView;
 
 /**
  * @author Werner Janjic
@@ -26,7 +27,7 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 public class ShowReuseView implements IWorkbenchWindowActionDelegate {
 
 	private IWorkbenchWindow window;
-	private IViewPart reuseView;
+	private ResultView reuseView;
 
 	private Logger logger = Logger.getLogger(ShowReuseView.class);
 
@@ -42,13 +43,10 @@ public class ShowReuseView implements IWorkbenchWindowActionDelegate {
 	@Override
 	public void run(IAction action) {
 		try {
-			if (reuseView == null)
-				reuseView = window.getActivePage().showView(
-						"de.uni_mannheim.swt.codeconjurer.views.ResultView");
-			else
-				reuseView.setFocus();
+			reuseView = (ResultView) window.getActivePage().showView(
+					"de.uni_mannheim.swt.codeconjurer.views.ResultView");
 		} catch (Exception e) {
-			logger.debug(e.getLocalizedMessage());
+			logger.debug("Exception: " + e.getLocalizedMessage());
 		}
 	}
 
@@ -75,6 +73,7 @@ public class ShowReuseView implements IWorkbenchWindowActionDelegate {
 		if (reuseView != null) {
 			try {
 				window.getActivePage().hideView(reuseView);
+				reuseView = null;
 			} catch (Exception e) {
 				logger.debug(e.getLocalizedMessage());
 			}

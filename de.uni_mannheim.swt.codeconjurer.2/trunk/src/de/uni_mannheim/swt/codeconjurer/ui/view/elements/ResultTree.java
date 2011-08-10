@@ -13,8 +13,6 @@
 package de.uni_mannheim.swt.codeconjurer.ui.view.elements;
 
 import org.apache.log4j.Logger;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -31,6 +29,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
+import de.uni_mannheim.swt.codeconjurer.ui.controller.ResultDoubleClickListener;
 import de.uni_mannheim.swt.codeconjurer.ui.dnd.SourceDragListener;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 import de.uni_mannheim.swt.codeconjurer.ui.view.providers.ResultContentProvider;
@@ -99,14 +98,7 @@ public class ResultTree {
 				treeViewer));
 
 		// Handle Double Clicks on items
-		treeViewer.addDoubleClickListener(new IDoubleClickListener() {
-
-			@Override
-			public void doubleClick(DoubleClickEvent event) {
-				logger.debug("Double Clicked on "
-						+ treeViewer.getTree().getSelection()[0].getText());
-			}
-		});
+		treeViewer.addDoubleClickListener(new ResultDoubleClickListener());
 	}
 
 	/**
