@@ -17,29 +17,11 @@
       </view>
    </extension>
    <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.eclipse.jdt.ui.JavaPerspective">
-         <view
-               id="com.merobase.app.codeconjurer.views.ResultView"
-               ratio="0.5"
-               relationship="right"
-               relative="org.eclipse.ui.views.TaskList">
-         </view>
-      </perspectiveExtension>
-   </extension>
-   <extension
-         point="org.eclipse.help.contexts">
-      <contexts
-            file="contexts.xml">
-      </contexts>
-   </extension>
-   <extension
-         id="com.merobase.app.codeconjurer"
+         id="de.uni_mannheim.swt.codeconjurer"
          point="org.eclipse.ui.actionSets">
       <actionSet
             description="%cc_activate.description"
-            id="com.merobase.app.codeconjurer.actionSet"
+            id="de.uni_mannheim.swt.codeconjurer.actionSet"
             label="%cc_activate.label"
             visible="true">
          <menu
@@ -58,7 +40,7 @@
          <action
                class="de.uni_mannheim.swt.codeconjurer.ui.controller.ActivatorButton"
                icon="icons/code_conjurer_m.png"
-               id="com.merobase.app.codeconjurer.UseAgentAction"
+               id="de.uni_mannheim.swt.codeconjurer.UseAgentAction"
                label="%use_agent.label"
                menubarPath="reuseMenu/techGroup"
                state="false"
@@ -68,14 +50,14 @@
          </action>
          <action
                class="de.uni_mannheim.swt.codeconjurer.ui.controller.PerformSearch"
-               id="com.merobase.app.codeconjurer.SearchAction"
+               id="de.uni_mannheim.swt.codeconjurer.SearchAction"
                label="%search_code.label"
                menubarPath="reuseMenu/searchGroup"
                style="push">
          </action>
          <action
                class="de.uni_mannheim.swt.codeconjurer.ui.controller.ShowReuseView"
-               id="com.merobase.app.codeconjurer.ShowRecommendationsViewAction"
+               id="de.uni_mannheim.swt.codeconjurer.ShowRecommendationsViewAction"
                label="%show_recommendations_view.label"
                menubarPath="reuseMenu/uiGroup"
                tooltip="%show_recommendations_view.tooltip">
@@ -87,13 +69,14 @@
       <perspectiveExtension
             targetID="org.eclipse.jdt.ui.JavaPerspective">
          <viewShortcut
-               id="com.merobase.app.codeconjurer.views.ResultView">
+               id="de.uni_mannheim.swt.codeconjurer.views.ResultView">
          </viewShortcut>
          <view
-               id="com.merobase.app.codeconjurer.views.ResultView"
+               closeable="true"
+               id="de.uni_mannheim.swt.codeconjurer.views.ResultView"
                minimized="false"
                relationship="right"
-               relative="org.eclipse.ui.views.ProblemView"
+               relative="org.eclipse.pde.runtime.LogView"
                visible="true">
          </view>
       </perspectiveExtension>
