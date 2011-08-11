@@ -41,12 +41,10 @@ public class ShowReuseView implements IWorkbenchWindowActionDelegate {
 	 */
 	@Override
 	public void run(IAction action) {
+		logger.debug("Show reuse view.");
 		try {
-			if (reuseView == null)
-				reuseView = window.getActivePage().showView(
-						"com.merobase.app.codeconjurer.views.ResultView");
-			else
-				reuseView.setFocus();
+			reuseView = window.getActivePage().showView(
+					"com.merobase.app.codeconjurer.views.ResultView");
 		} catch (Exception e) {
 			logger.debug(e.getLocalizedMessage());
 		}
@@ -75,6 +73,7 @@ public class ShowReuseView implements IWorkbenchWindowActionDelegate {
 		if (reuseView != null) {
 			try {
 				window.getActivePage().hideView(reuseView);
+				logger.debug("Hide view.");
 			} catch (Exception e) {
 				logger.debug(e.getLocalizedMessage());
 			}

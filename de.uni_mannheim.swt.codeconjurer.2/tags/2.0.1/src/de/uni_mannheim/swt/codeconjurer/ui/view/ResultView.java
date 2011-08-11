@@ -49,6 +49,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	private CodePreview preview;
 	private ResultTree resultTree;
 
+	private String defaultPartName;
+
 	private Logger logger = Logger.getLogger(ResultView.class);
 
 	/* Variables */
@@ -118,6 +120,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		CodeConjurer.getInstance().addSearchEventListener(this);
 		getSite().getPage().addPartListener(this);
 
+		defaultPartName = getPartName();
 		onEvent(UIEvent.CREATED);
 	}
 
@@ -168,12 +171,9 @@ public class ResultView extends ViewPart implements SearchEventListener,
 							if (selection != null)
 								preview.setCode(selection.getData().toString());
 							// Indicate that something has happened and add a
-							// star to the view's title
-							String name = view.getPartName();
-							if (!name.contains("*")
-									&& !(getSite().getPage()
-											.isPartVisible(view))) {
-								view.setPartName("* " + view.getPartName());
+							// star to the view's title if it is not active
+							if (!(getSite().getPage().isPartVisible(view))) {
+								view.setPartName("* " + defaultPartName);
 							}
 						}
 					});
@@ -190,7 +190,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	public void onEvent(UIEvent event) {
 		final ResultView view = this;
 		if (event == UIEvent.REFRESH) {
-			logger.debug("Refresh ResultTres");
+			logger.debug("Refresh ResultTree on UIEvent");
 			PluginUI.getWindow().getWorkbench().getDisplay()
 					.asyncExec(new Runnable() {
 						@Override
@@ -201,12 +201,9 @@ public class ResultView extends ViewPart implements SearchEventListener,
 							if (selection != null)
 								preview.setCode(selection.getData().toString());
 							// Indicate that something has happened and add a
-							// star to the view's title
-							String name = view.getPartName();
-							if (!name.contains("*")
-									&& !(getSite().getPage()
-											.isPartVisible(view))) {
-								view.setPartName("* " + view.getPartName());
+							// star to the view's title if it is not active
+							if (!(getSite().getPage().isPartVisible(view))) {
+								view.setPartName("* " + defaultPartName);
 							}
 						}
 					});
@@ -226,19 +223,15 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		}
 		if (partRef.getId().equals(
 				"com.merobase.app.codeconjurer.views.ResultView")) {
-			if (partRef.getTitle().contains("*")) {
-				partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
-						.asyncExec(new Runnable() {
-							@Override
-							public void run() {
-								String title = partRef.getTitle().substring(
-										partRef.getTitle().indexOf("*") + 1,
-										partRef.getTitle().length());
-								((ResultView) partRef.getPart(true))
-										.setPartName(title);
-							}
-						});
-			}
+			final ResultView view = this;
+			partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
+					.asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							// Remove star from the view's title
+							view.setPartName(defaultPartName);
+						}
+					});
 		}
 	}
 
@@ -246,19 +239,15 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	public void partBroughtToTop(final IWorkbenchPartReference partRef) {
 		if (partRef.getId().equals(
 				"com.merobase.app.codeconjurer.views.ResultView")) {
-			if (partRef.getTitle().contains("*")) {
-				partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
-						.asyncExec(new Runnable() {
-							@Override
-							public void run() {
-								String title = partRef.getTitle().substring(
-										partRef.getTitle().indexOf("*") + 1,
-										partRef.getTitle().length());
-								((ResultView) partRef.getPart(true))
-										.setPartName(title);
-							}
-						});
-			}
+			final ResultView view = this;
+			partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
+					.asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							// Remove star from the view's title
+							view.setPartName(defaultPartName);
+						}
+					});
 		}
 	}
 
@@ -290,19 +279,15 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	public void partVisible(final IWorkbenchPartReference partRef) {
 		if (partRef.getId().equals(
 				"com.merobase.app.codeconjurer.views.ResultView")) {
-			if (partRef.getTitle().contains("*")) {
-				partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
-						.asyncExec(new Runnable() {
-							@Override
-							public void run() {
-								String title = partRef.getTitle().substring(
-										partRef.getTitle().indexOf("*") + 1,
-										partRef.getTitle().length());
-								((ResultView) partRef.getPart(true))
-										.setPartName(title);
-							}
-						});
-			}
+			final ResultView view = this;
+			partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
+					.asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							// Remove star from the view's title
+							view.setPartName(defaultPartName);
+						}
+					});
 		}
 	}
 
@@ -363,9 +348,11 @@ public class ResultView extends ViewPart implements SearchEventListener,
 				} else {
 					message = msg;
 				}
-				statusLabel.setText("[Code Conjurer] " + message);
-				statusLabel.pack();
-				statusLabel.getParent().pack();
+				if (statusLabel != null && !statusLabel.isDisposed()) {
+					statusLabel.setText("[Code Conjurer] " + message);
+					statusLabel.pack();
+					statusLabel.getParent().pack();
+				}
 			}
 		});
 		logger.debug("Status refreshed!");

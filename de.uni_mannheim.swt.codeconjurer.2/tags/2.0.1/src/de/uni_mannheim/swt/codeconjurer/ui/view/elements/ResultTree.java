@@ -126,11 +126,20 @@ public class ResultTree {
 						if (newInput == null) {
 							return;
 						}
-						if (selection != null && selection.length > 0)
-							treeViewer.getTree().setSelection(selection);
-						if (expandedElements != null
-								&& expandedElements.length > 0)
-							treeViewer.setExpandedElements(expandedElements);
+						try {
+							if (selection != null && selection.length > 0)
+								treeViewer.getTree().setSelection(selection);
+							if (expandedElements != null
+									&& expandedElements.length > 0)
+								treeViewer
+										.setExpandedElements(expandedElements);
+						} catch (Exception e) {
+							logger.info("Exception setting tree status: "
+									+ e.getMessage());
+							logger.debug("Selection is " + selection);
+							logger.debug("Expanded Elements are "
+									+ expandedElements);
+						}
 					}
 				}
 			}
