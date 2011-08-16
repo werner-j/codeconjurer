@@ -28,7 +28,7 @@ public class PasswordFieldEditor extends StringFieldEditor {
 	@Override
 	protected void doFillIntoGrid(Composite parent, int numCols) {
 		super.doFillIntoGrid(parent, numCols);
-		getTextControl().setEchoChar('\u22C5');
+		getTextControl().setEchoChar('\u25CF');
 	}
 
 }

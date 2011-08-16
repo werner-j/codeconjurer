@@ -68,9 +68,10 @@ public class TestDrivenSearch extends Search {
 		logger.debug("Received session id: " + session);
 
 		if (session.contains("Invalid Username or Password")) {
-			notifySearchEventListeners(SearchEvent.SERVERERROR);
+			notifySearchEventListeners(SearchEvent.INVALID_USER);
 			return Status.CANCEL_STATUS;
 		}
+
 		notifySearchEventListeners(SearchEvent.STARTED);
 
 		// Wait for results

@@ -204,8 +204,9 @@ public class ResultView extends ViewPart implements SearchEventListener,
 					});
 			logger.debug("Update Statusline");
 			if (event == SearchEvent.SERVERERROR) {
-				updateStatus("A server error occured during the search. Check your settings "
-						+ "and contact the administrator if this problem persists.");
+				updateStatus("A server error occured during the search. Check your settings and contact the administrator if this problem persists.");
+			} else if (event == SearchEvent.INVALID_USER) {
+				updateStatus("Invalid username / password. Please check your preference settings.");
 			} else {
 				updateStatus();
 			}
