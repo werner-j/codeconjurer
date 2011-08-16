@@ -17,5 +17,5 @@ package de.uni_mannheim.swt.codeconjurer.domain.listener;
  * 
  */
 public enum SearchEvent {
-	STARTED, FINISHED, RESULT_ADDED, SOURCE_ADDED, CANCELLED, ERROR, SERVERERROR
+	STARTED, FINISHED, RESULT_ADDED, SOURCE_ADDED, CANCELLED, ERROR, SERVERERROR, INVALID_USER
 }

@@ -180,9 +180,13 @@ public class ResultView extends ViewPart implements SearchEventListener,
 			logger.debug("Update Statusline");
 			if (event == SearchEvent.SERVERERROR) {
 				updateStatus("A server error occured during the search. Check your settings and contact the administrator if this problem persists.");
+			} else if (event == SearchEvent.INVALID_USER) {
+				updateStatus("Invalid username / password. Please check your preference settings.");
 			} else {
 				updateStatus();
 			}
+		} else {
+			updateStatus();
 		}
 	}
 
@@ -312,6 +316,11 @@ public class ResultView extends ViewPart implements SearchEventListener,
 			public void run() {
 				logger.debug("Status refresh thread");
 
+				// A disposed widget needs no update
+				if (statusLabel == null || statusLabel.isDisposed()) {
+					return;
+				}
+
 				// Request from user to set preferences
 				boolean noServer = Activator.getDefault().getPreferenceStore()
 						.getString(PreferenceConstants.P_SERVER).equals("");
@@ -338,6 +347,9 @@ public class ResultView extends ViewPart implements SearchEventListener,
 										+ result.getNumberOfSuccessfullyFetchedSources()
 										+ " items successfully fetched. :: Result created " + result
 										.getCreationDate());
+								statusLabel
+										.setToolTipText("Number of fetched results may be different to the total "
+												+ "number of results if some http-sources do not exist any more.");
 							} else {
 								message = "No results.";
 							}
@@ -348,11 +360,9 @@ public class ResultView extends ViewPart implements SearchEventListener,
 				} else {
 					message = msg;
 				}
-				if (statusLabel != null && !statusLabel.isDisposed()) {
-					statusLabel.setText("[Code Conjurer] " + message);
-					statusLabel.pack();
-					statusLabel.getParent().pack();
-				}
+				statusLabel.setText("[Code Conjurer] " + message);
+				statusLabel.pack();
+				statusLabel.getParent().pack();
 			}
 		});
 		logger.debug("Status refreshed!");

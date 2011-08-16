@@ -60,6 +60,11 @@ public class StandardSearch extends Search {
 						+ e1.getLocalizedMessage());
 			}
 
+			if (session.equals("Invalid Username or Password")) {
+				notifySearchEventListeners(SearchEvent.INVALID_USER);
+				return Status.CANCEL_STATUS;
+			}
+
 			notifySearchEventListeners(SearchEvent.STARTED);
 
 			// Wait for results
