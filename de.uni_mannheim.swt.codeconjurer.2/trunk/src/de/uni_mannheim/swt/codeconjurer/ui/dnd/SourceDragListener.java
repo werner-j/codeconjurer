@@ -49,6 +49,10 @@ public class SourceDragListener implements DragSourceListener {
 	private TreeViewer viewer;
 	private Logger logger = Logger.getLogger(SourceDragListener.class);
 
+	private TreeItem selection;
+	private BodyDeclaration selectedElement;
+	private String transferString;
+
 	public SourceDragListener(TreeViewer viewer) {
 		logger.debug("SourceDragListener registered!");
 		this.viewer = viewer;
@@ -63,7 +67,11 @@ public class SourceDragListener implements DragSourceListener {
 			CodeConjurer.getInstance().getBackgroundAgentListener()
 					.ignoreNextEvent(true);
 		}
-		event.doit = (viewer.getTree().getSelection() != null);
+		selection = viewer.getTree().getSelection()[0];
+		if (selection != null) {
+			selectedElement = (BodyDeclaration) selection.getData();
+			event.doit = (selectedElement != null);
+		}
 	}
 
 	/**
@@ -71,18 +79,16 @@ public class SourceDragListener implements DragSourceListener {
 	 */
 	@Override
 	public void dragSetData(DragSourceEvent event) {
-		TreeItem selection = viewer.getTree().getSelection()[0];
-		BodyDeclaration selectionData = (BodyDeclaration) selection.getData();
-		String licText = selectionData.getProperty(ResultProperty.LICENSE
+		String licText = selectedElement.getProperty(ResultProperty.LICENSE
 				.name()) + "";
 		String license = "";
 		if (!licText.equals("no license")) {
 			license = "// Code released under the terms of the " + licText
 					+ "\r\n";
 		}
-		String transferString = license + "// "
-				+ selectionData.getProperty(ResultProperty.SHORT_URL.name())
-				+ "\r\n" + selectionData.toString();
+		transferString = license + "// "
+				+ selectedElement.getProperty(ResultProperty.SHORT_URL.name())
+				+ "\r\n" + selectedElement.toString();
 		if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
 			event.data = transferString;
 		}
@@ -91,9 +97,39 @@ public class SourceDragListener implements DragSourceListener {
 
 	@Override
 	public void dragFinished(DragSourceEvent event) {
-		logger.debug("Drag of " + viewer.getTree().getSelection()[0].getText()
-				+ " finished. Format the Sourcecode properly...");
+		if (event.doit) {
+			logger.debug("Drag of "
+					+ viewer.getTree().getSelection()[0].getText()
+					+ " finished. Format the Sourcecode properly...");
+			setContents();
+		}
+	}
 
+	/**
+	 * Sets the provided String as the editor's content
+	 * 
+	 * @param content
+	 */
+	private void setEditorContent(String content) {
+		ICompilationUnit icu = (ICompilationUnit) JavaUI
+				.getEditorInputJavaElement(PluginUI.getActiveEditor()
+						.getEditorInput());
+		try {
+			icu.becomeWorkingCopy(null);
+			icu.getBuffer().setContents(content);
+			icu.reconcile(ICompilationUnit.NO_AST, false, null, null);
+			icu.commitWorkingCopy(true, null);
+			icu.discardWorkingCopy();
+		} catch (JavaModelException e) {
+			logger.debug("JavaModelException during editor clearance.\r\n"
+					+ e.getLocalizedMessage());
+		}
+	}
+
+	/**
+	 * Set the content of the editor and format it if necessary
+	 */
+	private void setContents() {
 		// TODO: this kind of code formatting seems very smelly.
 		// Source:
 		// http://help.eclipse.org/indigo/topic/org.eclipse.jdt.doc.isv/guide/jdt_api_manip.htm
@@ -101,16 +137,23 @@ public class SourceDragListener implements DragSourceListener {
 				.getEditorInputJavaElement(PluginUI.getActiveEditor()
 						.getEditorInput());
 		String source = "";
-		try {
-			source = icu.getSource();
-		} catch (JavaModelException e1) {
-			logger.debug(e1.getLocalizedMessage());
+
+		// If we inserted a whole class -- clear the editor's content
+		if (selectedElement.getNodeType() == BodyDeclaration.TYPE_DECLARATION
+				|| selectedElement.getNodeType() == BodyDeclaration.ENUM_DECLARATION) {
+			setEditorContent(transferString);
 		}
 
 		// If we shouldn't format the source code -- exit.
 		if (!Activator.getDefault().getPreferenceStore()
 				.getString(PreferenceConstants.P_FORMAT).equals("true")) {
 			return;
+		}
+
+		try {
+			source = icu.getSource();
+		} catch (JavaModelException e1) {
+			logger.debug(e1.getLocalizedMessage());
 		}
 
 		// Take default Eclipse formatting options
@@ -161,4 +204,5 @@ public class SourceDragListener implements DragSourceListener {
 			}
 		}
 	}
+
 }

@@ -96,7 +96,7 @@ public class ResultTree {
 		Transfer[] transfers = new Transfer[] { TextTransfer.getInstance() };
 		treeViewer.addDragSupport(ops, transfers, new SourceDragListener(
 				treeViewer));
-
+		
 		// Handle Double Clicks on items
 		treeViewer.addDoubleClickListener(new ResultDoubleClickListener());
 	}
