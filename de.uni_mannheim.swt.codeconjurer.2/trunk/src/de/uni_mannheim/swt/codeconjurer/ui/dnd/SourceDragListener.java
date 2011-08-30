@@ -12,6 +12,7 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.dnd;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -19,7 +20,12 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.ToolFactory;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.eclipse.jdt.ui.JavaUI;
@@ -144,6 +150,27 @@ public class SourceDragListener implements DragSourceListener {
 			setEditorContent(transferString);
 		}
 
+		if (selectedElement.getNodeType() == BodyDeclaration.METHOD_DECLARATION
+				&& Activator.getDefault().getPreferenceStore()
+						.getString(PreferenceConstants.P_OVERWRITE_ON_INSERT)
+						.equals("true")) {
+			MethodDeclaration selection = (MethodDeclaration) selectedElement;
+			String signature = getMethodSignature(selection);
+			ASTParser parser = ASTParser.newParser(AST.JLS3);
+			parser.setSource(icu);
+			CompilationUnit cpu = (CompilationUnit) parser.createAST(null);
+			Iterator<?> it = cpu.types().iterator();
+			while (it.hasNext()) {
+				TypeDeclaration type = (TypeDeclaration) it.next();
+				for (MethodDeclaration m : type.getMethods()) {
+					if (signature.equals(getMethodSignature(m))) {
+						logger.debug("Found same method declaration!");
+					}
+				}
+			}
+
+		}
+
 		// If we shouldn't format the source code -- exit.
 		if (!Activator.getDefault().getPreferenceStore()
 				.getString(PreferenceConstants.P_FORMAT).equals("true")) {
@@ -205,4 +232,20 @@ public class SourceDragListener implements DragSourceListener {
 		}
 	}
 
+	/**
+	 * Creates a signature for the given MethodDeclaration
+	 * 
+	 * @param selection
+	 * @return
+	 */
+	private String getMethodSignature(MethodDeclaration selection) {
+		StringBuilder signature = new StringBuilder();
+		signature.append(selection.getName());
+		Iterator<?> it = selection.parameters().iterator();
+		while (it.hasNext()) {
+			signature.append(it.next().toString());
+		}
+		signature.append(selection.getReturnType2());
+		return signature.toString();
+	}
 }

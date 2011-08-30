@@ -27,4 +27,6 @@ public class PreferenceConstants {
 
 	public static final String P_FORMAT = "formatSourceOnInsert";
 
+	public static final String P_OVERWRITE_ON_INSERT = "overwriteOnInsert";
+
 }
