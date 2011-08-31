@@ -14,6 +14,7 @@ package de.uni_mannheim.swt.codeconjurer.domain.result;
 
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
@@ -28,6 +29,8 @@ import com.merotronics.merobase.ws.action.ResultBean;
  * 
  */
 public class ResultItem {
+
+	private Logger logger = Logger.getLogger(ResultItem.class);
 
 	// The properties of a result
 	private HashMap<ResultProperty, String> properties = new HashMap<ResultProperty, String>();
@@ -68,8 +71,13 @@ public class ResultItem {
 	 */
 	public void setSource(String source) {
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
+		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setSource(source.toCharArray());
-		resultCompilationUnit = (CompilationUnit) parser.createAST(null);
+		if (source.contains("Brought")) {
+			resultCompilationUnit = (CompilationUnit) parser.createAST(null);
+			logger.debug("Source for " + getProperty(ResultProperty.SHORT_URL)
+					+ " set.");
+		}
 	}
 
 	/**

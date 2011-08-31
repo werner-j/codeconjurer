@@ -14,18 +14,25 @@ package de.uni_mannheim.swt.codeconjurer.ui.view;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTargetListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
@@ -101,11 +108,15 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 				// Show the source code of the selection
 				if (preview != null) {
-					if (selected != null)
-						preview.setCode(selected.toString());
-					else
+					if (selected != null) {
+						if (selected.getNodeType() == BodyDeclaration.TYPE_DECLARATION) {
+							preview.setCode(((TypeDeclaration) selected)
+									.toString());
+						}
+					} else
 						preview.setCode("");
 				}
+
 			}
 		};
 
@@ -247,6 +258,57 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	@Override
 	public void partActivated(final IWorkbenchPartReference partRef) {
 		if (partRef.getId().equals("org.eclipse.jdt.ui.CompilationUnitEditor")) {
+			IEditorPart editor = PluginUI.getActiveEditor();
+			Control ctrl = (Control) editor.getAdapter(Control.class);
+			DropTarget dropTarget = (DropTarget) ctrl
+					.getData(DND.DROP_TARGET_KEY);
+			if (dropTarget != null) {
+				try {
+					logger.debug("Add drop listener to "
+							+ dropTarget.getDropTargetEffect().toString());
+					dropTarget.addDropListener(new DropTargetListener() {
+
+						@Override
+						public void dropAccept(DropTargetEvent event) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void drop(DropTargetEvent event) {
+							logger.debug("Dropped " + event.toString());
+						}
+
+						@Override
+						public void dragOver(DropTargetEvent event) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void dragOperationChanged(DropTargetEvent event) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void dragLeave(DropTargetEvent event) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void dragEnter(DropTargetEvent event) {
+							// TODO Auto-generated method stub
+
+						}
+					});
+				} catch (Exception t) {
+					logger.debug("Could not register drop service: "
+							+ t.getMessage());
+					t.printStackTrace();
+				}
+			}
 			updateStatus();
 			resultTree.refresh();
 			TreeItem selection = resultTree.getSelectedElement();

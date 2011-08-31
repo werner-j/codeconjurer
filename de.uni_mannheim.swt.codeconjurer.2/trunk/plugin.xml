@@ -13,7 +13,8 @@
             class="de.uni_mannheim.swt.codeconjurer.ui.view.ResultView"
             icon="icons/code_conjurer_m.png"
             id="de.uni_mannheim.swt.codeconjurer.views.ResultView"
-            name="%reuse_view.name">
+            name="%reuse_view.name"
+            restorable="true">
       </view>
    </extension>
    <extension
@@ -75,8 +76,9 @@
                closeable="true"
                id="de.uni_mannheim.swt.codeconjurer.views.ResultView"
                minimized="false"
-               relationship="right"
+               relationship="stack"
                relative="org.eclipse.pde.runtime.LogView"
+               standalone="false"
                visible="true">
          </view>
       </perspectiveExtension>

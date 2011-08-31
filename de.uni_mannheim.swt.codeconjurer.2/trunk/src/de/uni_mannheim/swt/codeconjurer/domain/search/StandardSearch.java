@@ -75,11 +75,6 @@ public class StandardSearch extends Search {
 			// Wait for results
 			int loop = 0;
 			while (!ws.isFinished()) {
-
-				// TODO: remove later
-				ArrayList<ResultBean> results = ws.getResults(session);
-				result.addResultList(results);
-
 				if (monitor.isCanceled()) {
 					logger.debug("Enable searching again.");
 					notifySearchEventListeners(SearchEvent.CANCELLED);
