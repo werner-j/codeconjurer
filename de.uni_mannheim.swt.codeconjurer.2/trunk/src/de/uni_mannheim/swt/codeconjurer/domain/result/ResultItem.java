@@ -20,9 +20,12 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import com.merotronics.merobase.ws.action.ResultBean;
+
+import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
 
 /**
  * @author Werner Janjic
@@ -119,6 +122,8 @@ public class ResultItem {
 			if (typeDec != null) {
 				typeDec.setProperty(ResultProperty.SHORT_URL.name(),
 						properties.get(ResultProperty.SHORT_URL));
+				typeDec.setProperty(ResultProperty.URI.name(),
+						properties.get(ResultProperty.SHORT_URL));
 				typeDec.setProperty(ResultProperty.EXECUTABILITY.name(),
 						properties.get(ResultProperty.EXECUTABILITY));
 				typeDec.setProperty(ResultProperty.LICENSE.name(),
@@ -128,5 +133,33 @@ public class ResultItem {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Returns the <code>BodyDeclaration</code> associated with the given uri or
+	 * null if no match.
+	 * 
+	 * @param uri
+	 * @return
+	 */
+	public BodyDeclaration find(String uri) {
+		if (getTypeRoot().getNodeType() != BodyDeclaration.TYPE_DECLARATION)
+			return null;
+		if (uri.equals(getTypeRoot().getProperty(ResultProperty.URI.name())))
+			return getTypeRoot();
+		for (MethodDeclaration method : ((TypeDeclaration) getTypeRoot())
+				.getMethods()) {
+			// Set a unique identifier (required for DND)
+			String sign = method.getReturnType2().toString()
+					+ method.getName().toString();
+			for (Object p : method.parameters()) {
+				sign += p.toString();
+			}
+			if (getTypeRoot().getProperty(
+					ResultProperty.URI.name() + CodeConjurer.URI_DELIMITER
+							+ sign).equals(uri))
+				return method;
+		}
+		return null;
 	}
 }

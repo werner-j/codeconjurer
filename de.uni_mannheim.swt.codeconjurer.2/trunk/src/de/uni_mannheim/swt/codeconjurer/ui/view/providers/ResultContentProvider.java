@@ -23,7 +23,9 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultItem;
+import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
 
 /**
@@ -91,12 +93,22 @@ public class ResultContentProvider implements ITreeContentProvider {
 		if (element.getNodeType() == ASTNode.TYPE_DECLARATION) {
 			for (MethodDeclaration method : ((TypeDeclaration) element)
 					.getMethods()) {
-				// Copy properties fromt class to methods
+				// Copy properties from class to methods
 				Set<?> properties = element.properties().keySet();
 				for (String property : (String[]) properties
 						.toArray(new String[element.properties().size()])) {
 					method.setProperty(property, element.getProperty(property));
 				}
+				// Set a unique identifier (required for DND)
+				String sign = "" + method.getReturnType2() + method.getName();
+				for (Object p : method.parameters()) {
+					sign += p.toString();
+				}
+				// Replace the copied parent's URI from above with a new URI
+				// extended with the signature of the child and a mark
+				method.setProperty(ResultProperty.URI.name(),
+						method.getProperty(ResultProperty.URI.name())
+								+ CodeConjurer.URI_DELIMITER + sign);
 				methods.add(method);
 			}
 			return methods.toArray();

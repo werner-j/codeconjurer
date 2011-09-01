@@ -39,6 +39,7 @@ import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
  */
 public class CodeConjurer {
 
+	public static final String URI_DELIMITER = "/#cc#/";
 	private static CodeConjurer instance;
 	private HashMap<IEditorPart, ParallelSearchPrevention> searchJobs = new HashMap<IEditorPart, ParallelSearchPrevention>();
 	private Logger logger = Logger.getLogger(CodeChangedListener.class);
@@ -197,7 +198,7 @@ public class CodeConjurer {
 	 * 
 	 * @return
 	 */
-	public Search getActiveSearch() {
+	public Search getActiveEditorSearch() {
 		ArrayList<Search> searchList = searches.get(PluginUI.getActiveEditor());
 		if (searchList != null && searchList.size() > 0) {
 			return searchList.get(searchList.size() - 1);

@@ -12,44 +12,91 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.dnd;
 
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerDropAdapter;
-import org.eclipse.swt.dnd.TransferData;
+import org.apache.log4j.Logger;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTargetListener;
 
 /**
  * @author Werner Janjic
  * 
  */
-public class JavaEditorDropListener extends ViewerDropAdapter {
+public class JavaEditorDropListener implements DropTargetListener {
 
-	protected JavaEditorDropListener(Viewer viewer) {
-		super(viewer);
+	private Logger logger = Logger.getLogger(JavaEditorDropListener.class);
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.eclipse.swt.dnd.DropTargetListener#dragEnter(org.eclipse.swt.dnd.
+	 * DropTargetEvent)
+	 */
+	@Override
+	public void dragEnter(DropTargetEvent event) {
+		// TODO Auto-generated method stub
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * org.eclipse.jface.viewers.ViewerDropAdapter#performDrop(java.lang.Object)
+	 * org.eclipse.swt.dnd.DropTargetListener#dragLeave(org.eclipse.swt.dnd.
+	 * DropTargetEvent)
 	 */
 	@Override
-	public boolean performDrop(Object data) {
+	public void dragLeave(DropTargetEvent event) {
 		// TODO Auto-generated method stub
-		return false;
+
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * org.eclipse.jface.viewers.ViewerDropAdapter#validateDrop(java.lang.Object
-	 * , int, org.eclipse.swt.dnd.TransferData)
+	 * org.eclipse.swt.dnd.DropTargetListener#dragOperationChanged(org.eclipse
+	 * .swt.dnd.DropTargetEvent)
 	 */
 	@Override
-	public boolean validateDrop(Object target, int operation,
-			TransferData transferType) {
+	public void dragOperationChanged(DropTargetEvent event) {
 		// TODO Auto-generated method stub
-		return false;
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.swt.dnd.DropTargetListener#dragOver(org.eclipse.swt.dnd.
+	 * DropTargetEvent)
+	 */
+	@Override
+	public void dragOver(DropTargetEvent event) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.swt.dnd.DropTargetListener#drop(org.eclipse.swt.dnd.
+	 * DropTargetEvent)
+	 */
+	@Override
+	public void drop(DropTargetEvent event) {
+		logger.debug("Dropped!" + ((BodyDeclaration) event.data).toString());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.eclipse.swt.dnd.DropTargetListener#dropAccept(org.eclipse.swt.dnd
+	 * .DropTargetEvent)
+	 */
+	@Override
+	public void dropAccept(DropTargetEvent event) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

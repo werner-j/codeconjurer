@@ -19,7 +19,6 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIListener;

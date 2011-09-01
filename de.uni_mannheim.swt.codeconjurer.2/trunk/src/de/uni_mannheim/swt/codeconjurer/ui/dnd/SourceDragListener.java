@@ -35,7 +35,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.DragSourceListener;
-import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
@@ -43,7 +42,6 @@ import org.eclipse.text.edits.TextEdit;
 import de.uni_mannheim.swt.codeconjurer.Activator;
 import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
-import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 /**
@@ -85,20 +83,19 @@ public class SourceDragListener implements DragSourceListener {
 	 */
 	@Override
 	public void dragSetData(DragSourceEvent event) {
-		String licText = selectedElement.getProperty(ResultProperty.LICENSE
-				.name()) + "";
-		String license = "";
-		if (!licText.equals("no license")) {
-			license = "// Code released under the terms of the " + licText
-					+ "\r\n";
-		}
-		transferString = license + "// "
-				+ selectedElement.getProperty(ResultProperty.SHORT_URL.name())
-				+ "\r\n" + selectedElement.toString();
-		if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-			event.data = transferString;
-		}
-		logger.debug("Transfer data:\r\n" + event.data);
+		/*
+		 * String licText = selectedElement.getProperty(ResultProperty.LICENSE
+		 * .name()) + ""; String license = ""; if
+		 * (!licText.equals("no license")) { license =
+		 * "// Code released under the terms of the " + licText + "\r\n"; }
+		 * transferString = license + "// " +
+		 * selectedElement.getProperty(ResultProperty.SHORT_URL.name()) + "\r\n"
+		 * + selectedElement.toString(); if
+		 * (TextTransfer.getInstance().isSupportedType(event.dataType)) {
+		 * event.data = transferString; } logger.debug("Transfer data:\r\n" +
+		 * event.data);
+		 */
+		event.data = selectedElement;
 	}
 
 	@Override
@@ -107,7 +104,7 @@ public class SourceDragListener implements DragSourceListener {
 			logger.debug("Drag of "
 					+ viewer.getTree().getSelection()[0].getText()
 					+ " finished. Format the Sourcecode properly...");
-			setContents();
+			// setContents();
 		}
 	}
 

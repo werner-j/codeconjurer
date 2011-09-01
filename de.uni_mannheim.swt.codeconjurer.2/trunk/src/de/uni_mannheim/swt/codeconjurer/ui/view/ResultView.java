@@ -12,6 +12,9 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.view;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -23,8 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.DropTargetListener;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -44,6 +46,8 @@ import de.uni_mannheim.swt.codeconjurer.domain.listener.SearchEventListener;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.Result;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
+import de.uni_mannheim.swt.codeconjurer.ui.dnd.BodyDeclarationTransfer;
+import de.uni_mannheim.swt.codeconjurer.ui.dnd.JavaEditorDropListener;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIListener;
 import de.uni_mannheim.swt.codeconjurer.ui.view.elements.CodePreview;
@@ -265,44 +269,13 @@ public class ResultView extends ViewPart implements SearchEventListener,
 			if (dropTarget != null) {
 				try {
 					logger.debug("Add drop listener to "
-							+ dropTarget.getDropTargetEffect().toString());
-					dropTarget.addDropListener(new DropTargetListener() {
-
-						@Override
-						public void dropAccept(DropTargetEvent event) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void drop(DropTargetEvent event) {
-							logger.debug("Dropped " + event.toString());
-						}
-
-						@Override
-						public void dragOver(DropTargetEvent event) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void dragOperationChanged(DropTargetEvent event) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void dragLeave(DropTargetEvent event) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void dragEnter(DropTargetEvent event) {
-							// TODO Auto-generated method stub
-
-						}
-					});
+							+ dropTarget.toString());
+					dropTarget.addDropListener(new JavaEditorDropListener());
+					ArrayList<Transfer> transfers = new ArrayList<Transfer>(
+							Arrays.asList(dropTarget.getTransfer()));
+					transfers.add(BodyDeclarationTransfer.getInstance());
+					dropTarget.setTransfer(transfers
+							.toArray(new Transfer[transfers.size()]));
 				} catch (Exception t) {
 					logger.debug("Could not register drop service: "
 							+ t.getMessage());
@@ -424,7 +397,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 						message = "Please set up preferences first. Go to Eclipse -> Preferences -> Code Conjurer.";
 					} else {
 						Search search = CodeConjurer.getInstance()
-								.getActiveSearch();
+								.getActiveEditorSearch();
 
 						if (search != null) {
 							Result result = search.getSearchResult();

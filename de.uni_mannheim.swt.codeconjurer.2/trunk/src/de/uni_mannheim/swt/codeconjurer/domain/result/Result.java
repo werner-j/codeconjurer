@@ -32,7 +32,9 @@ public class Result extends Observable {
 
 	private Logger logger = Logger.getLogger(Result.class);
 
+	// SHORT_URL, ResultItem
 	private HashMap<String, ResultItem> resultItems = new HashMap<String, ResultItem>();
+
 	private HashMap<String, String> successfulSources = new HashMap<String, String>();
 
 	private Calendar creation;
@@ -94,6 +96,16 @@ public class Result extends Observable {
 	public ResultItem[] getResultItems() {
 		ResultItem[] results = new ResultItem[resultItems.values().size()];
 		return resultItems.values().toArray(results);
+	}
+
+	/**
+	 * Returns the <code>ResultItem</code> for the given URL
+	 * 
+	 * @param shortUrl
+	 * @return
+	 */
+	public ResultItem getResultItem(String shortUrl) {
+		return resultItems.get(shortUrl);
 	}
 
 	/**

@@ -17,7 +17,6 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -30,6 +29,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
 import de.uni_mannheim.swt.codeconjurer.ui.controller.ResultDoubleClickListener;
+import de.uni_mannheim.swt.codeconjurer.ui.dnd.BodyDeclarationTransfer;
 import de.uni_mannheim.swt.codeconjurer.ui.dnd.SourceDragListener;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 import de.uni_mannheim.swt.codeconjurer.ui.view.providers.ResultContentProvider;
@@ -87,16 +87,17 @@ public class ResultTree {
 		resultLabelProvider = new ResultLabelProvider();
 		treeViewer.setContentProvider(resultContentProvider);
 		treeViewer.setLabelProvider(resultLabelProvider);
-		treeViewer.setInput(CodeConjurer.getInstance().getActiveSearch());
+		treeViewer.setInput(CodeConjurer.getInstance().getActiveEditorSearch());
 
 		treeViewer.addSelectionChangedListener(listener);
 
 		// Enable Drag & Drop Support
 		int ops = DND.DROP_COPY;
-		Transfer[] transfers = new Transfer[] { TextTransfer.getInstance() };
+		Transfer[] transfers = new Transfer[] { BodyDeclarationTransfer
+				.getInstance() };
 		treeViewer.addDragSupport(ops, transfers, new SourceDragListener(
 				treeViewer));
-		
+
 		// Handle Double Clicks on items
 		treeViewer.addDoubleClickListener(new ResultDoubleClickListener());
 	}
@@ -120,7 +121,7 @@ public class ResultTree {
 				if (treeViewer != null) {
 					Search oldInput = (Search) treeViewer.getInput();
 					Search newInput = CodeConjurer.getInstance()
-							.getActiveSearch();
+							.getActiveEditorSearch();
 					Tree tree = treeViewer.getTree();
 					if (tree != null && !tree.isDisposed()) {
 						TreeItem[] selection = tree.getSelection();
