@@ -150,14 +150,13 @@ public class ResultItem {
 		for (MethodDeclaration method : ((TypeDeclaration) getTypeRoot())
 				.getMethods()) {
 			// Set a unique identifier (required for DND)
-			String sign = method.getReturnType2().toString()
-					+ method.getName().toString();
+			String sign = "" + method.getReturnType2() + method.getName();
 			for (Object p : method.parameters()) {
 				sign += p.toString();
 			}
-			if (getTypeRoot().getProperty(
-					ResultProperty.URI.name() + CodeConjurer.URI_DELIMITER
-							+ sign).equals(uri))
+			String lUri = getTypeRoot().getProperty(ResultProperty.URI.name())
+					+ CodeConjurer.URI_DELIMITER + sign;
+			if (lUri.equals(uri))
 				return method;
 		}
 		return null;

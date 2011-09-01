@@ -95,7 +95,7 @@ public class SourceDragListener implements DragSourceListener {
 		 * event.data = transferString; } logger.debug("Transfer data:\r\n" +
 		 * event.data);
 		 */
-		event.data = selectedElement;
+		event.data = new BodyDeclaration[] { selectedElement };
 	}
 
 	@Override

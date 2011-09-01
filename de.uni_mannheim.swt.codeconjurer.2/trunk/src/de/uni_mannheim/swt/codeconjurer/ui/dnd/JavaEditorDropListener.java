@@ -83,7 +83,8 @@ public class JavaEditorDropListener implements DropTargetListener {
 	 */
 	@Override
 	public void drop(DropTargetEvent event) {
-		logger.debug("Dropped!" + ((BodyDeclaration) event.data).toString());
+		logger.debug("Dropped: \r\n"
+				+ ((BodyDeclaration[]) event.data)[0].toString());
 	}
 
 	/*

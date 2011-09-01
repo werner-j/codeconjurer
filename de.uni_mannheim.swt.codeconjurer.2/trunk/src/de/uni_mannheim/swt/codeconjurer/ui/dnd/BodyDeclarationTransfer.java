@@ -49,6 +49,7 @@ public class BodyDeclarationTransfer extends ByteArrayTransfer {
 	private static BodyDeclarationTransfer _instance = new BodyDeclarationTransfer();
 
 	private BodyDeclarationTransfer() {
+		logger.debug("Instantiated BodyDeclarationTransfer");
 	}
 
 	public static BodyDeclarationTransfer getInstance() {
@@ -90,7 +91,7 @@ public class BodyDeclarationTransfer extends ByteArrayTransfer {
 			if (buffer == null)
 				return null;
 
-			BodyDeclaration[] bodyDec = new BodyDeclaration[0];
+			BodyDeclaration[] bodyDec = new BodyDeclaration[1];
 			try {
 				ByteArrayInputStream in = new ByteArrayInputStream(buffer);
 				DataInputStream readIn = new DataInputStream(in);
@@ -104,8 +105,10 @@ public class BodyDeclarationTransfer extends ByteArrayTransfer {
 					logger.debug("Rematerialize " + uri);
 					// The end of the URI substring depends on whether there is
 					// a URI delimiter or not
-					int endIdx = Math.max(uriString.length(),
-							uriString.indexOf(CodeConjurer.URI_DELIMITER));
+					int endIdx = uriString.length();
+					if (uriString.contains(CodeConjurer.URI_DELIMITER)) {
+						endIdx = uriString.indexOf(CodeConjurer.URI_DELIMITER);
+					}
 					ResultItem result = search.getSearchResult().getResultItem(
 							uriString.substring(0, endIdx));
 					bodyDec[0] = result.find(uriString);
