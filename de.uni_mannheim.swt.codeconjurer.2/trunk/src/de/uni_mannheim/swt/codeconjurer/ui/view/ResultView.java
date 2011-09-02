@@ -17,7 +17,6 @@ import java.util.Arrays;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -26,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetListener;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -113,12 +113,10 @@ public class ResultView extends ViewPart implements SearchEventListener,
 				// Show the source code of the selection
 				if (preview != null) {
 					if (selected != null) {
-						if (selected.getNodeType() == BodyDeclaration.TYPE_DECLARATION) {
-							preview.setCode(((TypeDeclaration) selected)
-									.toString());
-						}
-					} else
+						preview.setCode(selected.toString());
+					} else {
 						preview.setCode("");
+					}
 				}
 
 			}
@@ -268,14 +266,26 @@ public class ResultView extends ViewPart implements SearchEventListener,
 					.getData(DND.DROP_TARGET_KEY);
 			if (dropTarget != null) {
 				try {
-					logger.debug("Add drop listener to "
-							+ dropTarget.toString());
-					dropTarget.addDropListener(new JavaEditorDropListener());
+					// Add drop listener to editor
+					ArrayList<DropTargetListener> dropListeners = new ArrayList<DropTargetListener>(
+							Arrays.asList(dropTarget.getDropListeners()));
+					if (!dropListeners.contains(JavaEditorDropListener
+							.getInstance())) {
+						logger.debug("Add drop listener to "
+								+ dropTarget.toString());
+						dropTarget.addDropListener(JavaEditorDropListener
+								.getInstance());
+					}
+
+					// Add new transfer type to editor
 					ArrayList<Transfer> transfers = new ArrayList<Transfer>(
 							Arrays.asList(dropTarget.getTransfer()));
-					transfers.add(BodyDeclarationTransfer.getInstance());
-					dropTarget.setTransfer(transfers
-							.toArray(new Transfer[transfers.size()]));
+					if (!transfers.contains(BodyDeclarationTransfer
+							.getInstance())) {
+						transfers.add(BodyDeclarationTransfer.getInstance());
+						dropTarget.setTransfer(transfers
+								.toArray(new Transfer[transfers.size()]));
+					}
 				} catch (Exception t) {
 					logger.debug("Could not register drop service: "
 							+ t.getMessage());
@@ -380,8 +390,6 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		PluginUI.getWindow().getShell().getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				logger.debug("Status refresh thread");
-
 				// Request from user to set preferences
 				boolean noServer = Activator.getDefault().getPreferenceStore()
 						.getString(PreferenceConstants.P_SERVER).equals("");

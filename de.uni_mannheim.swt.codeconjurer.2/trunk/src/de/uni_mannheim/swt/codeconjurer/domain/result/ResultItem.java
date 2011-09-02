@@ -76,11 +76,16 @@ public class ResultItem {
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setSource(source.toCharArray());
-		if (source.contains("Brought")) {
-			resultCompilationUnit = (CompilationUnit) parser.createAST(null);
-			logger.debug("Source for " + getProperty(ResultProperty.SHORT_URL)
-					+ " set.");
-		}
+		resultCompilationUnit = (CompilationUnit) parser.createAST(null);
+	}
+
+	/**
+	 * Returns the CompilationUnit associated with this result
+	 * 
+	 * @return
+	 */
+	public CompilationUnit getCompilationUnit() {
+		return resultCompilationUnit;
 	}
 
 	/**
