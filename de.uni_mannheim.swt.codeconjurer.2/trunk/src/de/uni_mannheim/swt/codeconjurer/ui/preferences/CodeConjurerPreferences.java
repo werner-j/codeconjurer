@@ -58,9 +58,6 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 		// Choose between 5 and 100 results
 		addField(new SliderFieldEditor(PreferenceConstants.P_RESULTS,
 				"&Results per Search:", 5, 105, 5, getFieldEditorParent()));
-		addField(new BooleanFieldEditor(PreferenceConstants.P_FORMAT,
-				"Format Code on Insert", BooleanFieldEditor.SEPARATE_LABEL,
-				getFieldEditorParent()));
 		addField(new BooleanFieldEditor(
 				PreferenceConstants.P_OVERWRITE_ON_INSERT,
 				"Overwrite on Insert", BooleanFieldEditor.SEPARATE_LABEL,

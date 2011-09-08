@@ -259,7 +259,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 	@Override
 	public void partActivated(final IWorkbenchPartReference partRef) {
-		if (partRef.getId().equals("org.eclipse.jdt.ui.CompilationUnitEditor")) {
+		String id = partRef.getId();
+		if (id.equals("org.eclipse.jdt.ui.CompilationUnitEditor")) {
 			IEditorPart editor = PluginUI.getActiveEditor();
 			Control ctrl = (Control) editor.getAdapter(Control.class);
 			DropTarget dropTarget = (DropTarget) ctrl

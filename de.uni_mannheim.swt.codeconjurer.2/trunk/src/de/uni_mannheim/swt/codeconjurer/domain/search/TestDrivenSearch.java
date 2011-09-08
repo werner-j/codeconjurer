@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.IEditorPart;
 
-import com.merotronics.merobase.ws.action.IOException_Exception;
 import com.merotronics.merobase.ws.action.ResultBean;
 import com.merotronics.merobase.ws.client.util.WSConnection;
 
@@ -48,92 +47,95 @@ public class TestDrivenSearch extends Search {
 		int numResults = Integer.parseInt(Activator.getDefault()
 				.getPreferenceStore().getString(PreferenceConstants.P_RESULTS));
 
-		WSConnection ws = new WSConnection(serverLocation);
-		String session = "";
-		logger.debug("Initialize search for " + numResults + " components at "
-				+ serverLocation + ".");
-		String queryString = query.getQuery();
-		if (queryString.equals("")) {
-			notifySearchEventListeners(SearchEvent.ERROR);
-			return Status.CANCEL_STATUS;
-		}
 		try {
+			WSConnection ws = new WSConnection(serverLocation);
+			String session = "";
+			logger.debug("Initialize search for " + numResults
+					+ " components at " + serverLocation + ".");
+			String queryString = query.getQuery();
+			if (queryString.equals("")) {
+				notifySearchEventListeners(SearchEvent.ERROR);
+				return Status.CANCEL_STATUS;
+			}
 			session = ws.initComponentSearch(queryString, username, password,
 					numResults);
-		} catch (IOException_Exception e) {
-			logger.debug("Could not initialize component search.");
-			notifySearchEventListeners(SearchEvent.SERVERERROR);
-			return Status.CANCEL_STATUS;
-		}
-		logger.debug("Received session id: " + session);
+			logger.debug("Received session id: " + session);
 
-		if (session.contains("Invalid Username or Password")) {
-			notifySearchEventListeners(SearchEvent.INVALID_USER);
-			return Status.CANCEL_STATUS;
-		}
+			if (session.contains("Invalid Username or Password")) {
+				notifySearchEventListeners(SearchEvent.INVALID_USER);
+				return Status.CANCEL_STATUS;
+			}
 
-		notifySearchEventListeners(SearchEvent.STARTED);
+			notifySearchEventListeners(SearchEvent.STARTED);
 
-		// Wait for results
-		int loop = 0;
-		while (!ws.isFinished()) {
+			// Wait for results
+			int loop = 0;
+			while (!ws.isFinished()) {
 
-			// TODO: remove later
+				// TODO: remove later
+				ArrayList<ResultBean> results = ws.getResults(session);
+				result.addResultList(results);
+
+				if (monitor.isCanceled()) {
+					logger.debug("Enable searching again.");
+					notifySearchEventListeners(SearchEvent.CANCELLED);
+					return Status.CANCEL_STATUS;
+				}
+				logger.debug("Search still in progress... #" + result.size());
+				// Sleep timer increases with every iteration to a 10s maximum.
+				int sleep = Math.min(loop++, 10);
+				logger.debug("Sleep for " + sleep + " seconds.");
+				try {
+					TimeUnit.SECONDS.sleep(sleep);
+				} catch (InterruptedException e) {
+					notifySearchEventListeners(SearchEvent.CANCELLED);
+					return Status.CANCEL_STATUS;
+				}
+			}
+			// Store results
 			ArrayList<ResultBean> results = ws.getResults(session);
-			result.addResultList(results);
+			logger.debug("Webservice returned " + results.size()
+					+ " results from Merobase.");
+			result.setResultList(results);
+			notifySearchEventListeners(SearchEvent.RESULT_ADDED);
 
-			if (monitor.isCanceled()) {
-				logger.debug("Enable searching again.");
-				notifySearchEventListeners(SearchEvent.CANCELLED);
-				return Status.CANCEL_STATUS;
+			monitor.beginTask("Fetch Sourcecode", result.size());
+			logger.debug("Beginn fetching sourcecode for " + result.size()
+					+ " results.");
+
+			for (ResultItem r : result.getResultItems()) {
+				String source = null;
+				try {
+					source = ws.componentSource(
+							r.getProperty(ResultProperty.SHORT_URL), username,
+							password, 10);
+				} catch (Exception e) {
+					logger.debug("Could not retrieve sourcecode for "
+							+ r.getProperty(ResultProperty.SHORT_URL));
+					notifySearchEventListeners(SearchEvent.SERVERERROR);
+					return Status.CANCEL_STATUS;
+				}
+				result.addSource(r.getProperty(ResultProperty.SHORT_URL),
+						source);
+				notifySearchEventListeners(SearchEvent.SOURCE_ADDED);
+				monitor.worked(1);
+				if (monitor.isCanceled()) {
+					logger.debug("Enable searching again.");
+					notifySearchEventListeners(SearchEvent.CANCELLED);
+					return Status.CANCEL_STATUS;
+				}
 			}
-			logger.debug("Search still in progress... #" + result.size());
-			// Sleep timer increases with every iteration to a 10s maximum.
-			int sleep = Math.min(loop++, 10);
-			logger.debug("Sleep for " + sleep + " seconds.");
-			try {
-				TimeUnit.SECONDS.sleep(sleep);
-			} catch (InterruptedException e) {
-				notifySearchEventListeners(SearchEvent.CANCELLED);
-				return Status.CANCEL_STATUS;
-			}
+			// Show Test-Driven Results in foreground
+			PluginUI.showRecommendationsView(false);
+			notifySearchEventListeners(SearchEvent.FINISHED);
+			return Status.OK_STATUS;
+		} catch (Throwable e) {
+			logger.debug("Problem during search: " + e.getMessage() + " / "
+					+ e.getCause().getMessage());
+			notifySearchEventListeners(SearchEvent.SERVERERROR);
+			e.printStackTrace();
+			return Status.CANCEL_STATUS;
 		}
-		// Store results
-		ArrayList<ResultBean> results = ws.getResults(session);
-		logger.debug("Webservice returned " + results.size()
-				+ " results from Merobase.");
-		result.setResultList(results);
-		notifySearchEventListeners(SearchEvent.RESULT_ADDED);
-
-		monitor.beginTask("Fetch Sourcecode", result.size());
-		logger.debug("Beginn fetching sourcecode for " + result.size()
-				+ " results.");
-
-		for (ResultItem r : result.getResultItems()) {
-			String source = null;
-			try {
-				source = ws.componentSource(
-						r.getProperty(ResultProperty.SHORT_URL), username,
-						password, 10);
-			} catch (Exception e) {
-				logger.debug("Could not retrieve sourcecode for "
-						+ r.getProperty(ResultProperty.SHORT_URL));
-				notifySearchEventListeners(SearchEvent.SERVERERROR);
-				return Status.CANCEL_STATUS;
-			}
-			result.addSource(r.getProperty(ResultProperty.SHORT_URL), source);
-			notifySearchEventListeners(SearchEvent.SOURCE_ADDED);
-			monitor.worked(1);
-			if (monitor.isCanceled()) {
-				logger.debug("Enable searching again.");
-				notifySearchEventListeners(SearchEvent.CANCELLED);
-				return Status.CANCEL_STATUS;
-			}
-		}
-		// Show Test-Driven Results in foreground
-		PluginUI.showRecommendationsView(false);
-		notifySearchEventListeners(SearchEvent.FINISHED);
-		return Status.OK_STATUS;
 	}
 
 	@Override

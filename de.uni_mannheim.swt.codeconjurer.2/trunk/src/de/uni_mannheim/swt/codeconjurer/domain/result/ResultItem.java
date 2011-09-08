@@ -55,6 +55,7 @@ public class ResultItem {
 		properties.put(ResultProperty.LICENSE, rb.getLicense());
 		properties.put(ResultProperty.LICENSE_DESCRIPTION,
 				rb.getLicenseDescription());
+		logger.debug("ResultItem created");
 	}
 
 	/**
