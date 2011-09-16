@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -170,6 +171,8 @@ public class JavaEditorDropListener implements DropTargetListener {
 	private void insertDeclaration(ICompilationUnit target,
 			MethodDeclaration methodDeclaration) throws JavaModelException,
 			MalformedTreeException, BadLocationException {
+		boolean overwrite = Activator.getDefault().getPreferenceStore()
+				.getBoolean(PreferenceConstants.P_OVERWRITE_ON_INSERT);
 
 		ICompilationUnit cpu = target.getWorkingCopy(null);
 		// creation of DOM/AST from an ICompilationUnit
@@ -179,35 +182,32 @@ public class JavaEditorDropListener implements DropTargetListener {
 
 		// creation of ASTRewrite
 		astRoot.recordModifications();
+		IMethod method = null;
 		try {
-			astRoot.getTypeRoot()
+			method = astRoot
+					.getTypeRoot()
 					.findPrimaryType()
-					.createMethod(methodDeclaration.toString(), null, false,
-							null);
+					.createMethod(methodDeclaration.toString(), null,
+							overwrite, null);
 		} catch (JavaModelException e) {
 			logger.debug("Method could not be created: "
 					+ e.getLocalizedMessage());
 		}
 
-		String source = cpu.getSource();
-		Document document = new Document(source);
-
-		// computation of the text edits
-		TextEdit edits = astRoot.rewrite(document, cpu.getJavaProject()
-				.getOptions(true));
-
-		// computation of the new source code
-		if (edits != null) {
-			edits.apply(document);
+		if (overwrite) {
+			IMethod[] methods = astRoot.getTypeRoot().findPrimaryType()
+					.findMethods(method);
+			for (int i = 0; i < methods.length - 1; i++) {
+				methods[i].delete(false, null);
+			}
 		}
 
-		String newSource = document.get();
-
 		// update of the compilation unit
-		cpu.getBuffer().setContents(newSource);
+		cpu.getBuffer().setContents(
+				astRoot.getTypeRoot().findPrimaryType().getCompilationUnit()
+						.getSource());
 		cpu.reconcile(ICompilationUnit.NO_AST, false, null, null);
 		cpu.commitWorkingCopy(false, null);
-		cpu.discardWorkingCopy();
 	}
 
 	/**
