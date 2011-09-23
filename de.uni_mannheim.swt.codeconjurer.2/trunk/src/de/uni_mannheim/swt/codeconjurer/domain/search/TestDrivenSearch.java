@@ -34,6 +34,7 @@ public class TestDrivenSearch extends Search {
 
 	public TestDrivenSearch(IEditorPart editor, String name, Query query) {
 		super(editor, name, query);
+		super.type = Search.TEST;
 	}
 
 	@Override
@@ -66,16 +67,11 @@ public class TestDrivenSearch extends Search {
 				return Status.CANCEL_STATUS;
 			}
 
-			notifySearchEventListeners(SearchEvent.STARTED);
+			notifySearchEventListeners(SearchEvent.TEST_STARTED);
 
 			// Wait for results
 			int loop = 0;
 			while (!ws.isFinished()) {
-
-				// TODO: remove later
-				ArrayList<ResultBean> results = ws.getResults(session);
-				result.addResultList(results);
-
 				if (monitor.isCanceled()) {
 					logger.debug("Enable searching again.");
 					notifySearchEventListeners(SearchEvent.CANCELLED);
@@ -83,7 +79,7 @@ public class TestDrivenSearch extends Search {
 				}
 				logger.debug("Search still in progress... #" + result.size());
 				// Sleep timer increases with every iteration to a 10s maximum.
-				int sleep = Math.min(loop++, 10);
+				int sleep = Math.min(loop++, 5);
 				logger.debug("Sleep for " + sleep + " seconds.");
 				try {
 					TimeUnit.SECONDS.sleep(sleep);
@@ -110,10 +106,13 @@ public class TestDrivenSearch extends Search {
 							r.getProperty(ResultProperty.SHORT_URL), username,
 							password, 10);
 				} catch (Exception e) {
+					source = "/** Source could not be fetched from "
+							+ r.getProperty(ResultProperty.SHORT_URL) + " */";
 					logger.debug("Could not retrieve sourcecode for "
 							+ r.getProperty(ResultProperty.SHORT_URL));
+					e.printStackTrace();
 					notifySearchEventListeners(SearchEvent.SERVERERROR);
-					return Status.CANCEL_STATUS;
+					// return Status.CANCEL_STATUS;
 				}
 				result.addSource(r.getProperty(ResultProperty.SHORT_URL),
 						source);
@@ -130,8 +129,7 @@ public class TestDrivenSearch extends Search {
 			notifySearchEventListeners(SearchEvent.FINISHED);
 			return Status.OK_STATUS;
 		} catch (Throwable e) {
-			logger.debug("Problem during search: " + e.getMessage() + " / "
-					+ e.getCause().getMessage());
+			logger.debug("Problem during search: " + e.getMessage());
 			notifySearchEventListeners(SearchEvent.SERVERERROR);
 			e.printStackTrace();
 			return Status.CANCEL_STATUS;

@@ -31,12 +31,17 @@ public abstract class Search extends Job {
 
 	protected Logger logger = Logger.getLogger(Search.class);
 
+	public final static int INTERFACE = 1;
+	public final static int TEST = 2;
+
 	protected ArrayList<SearchEventListener> listeners = new ArrayList<SearchEventListener>();
 
 	protected Query query;
 	protected Result result;
 
 	private IEditorPart editor;
+
+	protected int type = 0;
 
 	/**
 	 * Creates a Search
@@ -65,6 +70,10 @@ public abstract class Search extends Job {
 
 	public void addSearchEventListener(SearchEventListener listener) {
 		this.listeners.add(listener);
+	}
+
+	public int getType() {
+		return type;
 	}
 
 	protected void notifySearchEventListeners(SearchEvent event) {

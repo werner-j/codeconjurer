@@ -409,16 +409,36 @@ public class ResultView extends ViewPart implements SearchEventListener,
 								.getActiveEditorSearch();
 
 						if (search != null) {
-							Result result = search.getSearchResult();
-							int results = result.getResultItems().length;
-							if (results > 0) {
-								message = (results
-										+ " Results Found. "
-										+ result.getNumberOfSuccessfullyFetchedSources()
-										+ " items successfully fetched. :: Result created " + result
-										.getCreationDate());
-							} else {
+							Result result = null;
+							int results = 0;
+							switch (search.getType()) {
+							case Search.INTERFACE:
+								result = search.getSearchResult();
+								results = result.getResultItems().length;
+								if (results > 0) {
+									message = (results
+											+ " results found. "
+											+ result.getNumberOfSuccessfullyFetchedSources()
+											+ " items successfully retrieved. :: Result created " + result
+											.getCreationDate());
+								}
+								break;
+
+							case Search.TEST:
+								result = search.getSearchResult();
+								results = result.getResultItems().length;
+								if (results > 0) {
+									message = (results
+											+ " candidates passed test. "
+											+ result.getNumberOfSuccessfullyFetchedSources()
+											+ " items successfully retrieved. :: Result created " + result
+											.getCreationDate());
+								}
+								break;
+
+							default:
 								message = "No results.";
+								break;
 							}
 						} else {
 							message = ("No search results available.");

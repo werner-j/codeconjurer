@@ -33,6 +33,7 @@ public class StandardSearch extends Search {
 
 	public StandardSearch(IEditorPart editor, String name, Query query) {
 		super(editor, name, query);
+		super.type = Search.INTERFACE;
 	}
 
 	@Override
@@ -80,9 +81,8 @@ public class StandardSearch extends Search {
 					notifySearchEventListeners(SearchEvent.CANCELLED);
 					return Status.CANCEL_STATUS;
 				}
-				logger.debug("Search still in progress... #" + result.size());
 				// Sleep timer increases with every iteration to a 10s maximum.
-				int sleep = Math.min(500 * loop++, 10000);
+				int sleep = Math.min(500 * loop++, 5000);
 				logger.debug("Sleep for " + ((double) sleep / 1000)
 						+ " seconds.");
 				Thread.sleep(sleep);
@@ -100,16 +100,17 @@ public class StandardSearch extends Search {
 
 			for (ResultItem r : result.getResultItems()) {
 				String source = null;
+				String urlString = r.getProperty(ResultProperty.SHORT_URL);
 				try {
-					source = ws.componentSource(
-							r.getProperty(ResultProperty.SHORT_URL), username,
-							password, 10);
+					source = ws.componentSource(urlString, username, password,
+							10);
 				} catch (Exception e) {
 					logger.debug(e.getLocalizedMessage());
 					source = "/** Source could not be fetched */";
 				}
-				result.addSource(r.getProperty(ResultProperty.SHORT_URL),
-						source);
+				result.addSource(urlString,
+						"/** Sourcecode fetched by merobase.com \r\n * Origin: "
+								+ urlString + " */" + source);
 				notifySearchEventListeners(SearchEvent.SOURCE_ADDED);
 				monitor.worked(1);
 				if (monitor.isCanceled()) {
@@ -120,6 +121,7 @@ public class StandardSearch extends Search {
 			}
 		} catch (Exception e) {
 			logger.debug("Exception: " + e.getLocalizedMessage());
+			e.printStackTrace();
 			notifySearchEventListeners(SearchEvent.SERVERERROR);
 			return Status.CANCEL_STATUS;
 		}

@@ -38,6 +38,7 @@ import org.eclipse.text.edits.TextEdit;
 
 import de.uni_mannheim.swt.codeconjurer.Activator;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
+import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 /**
@@ -183,22 +184,23 @@ public class JavaEditorDropListener implements DropTargetListener {
 		// creation of ASTRewrite
 		astRoot.recordModifications();
 		IMethod method = null;
+		String content = createPreambule(methodDeclaration) + "\r\n"
+				+ methodDeclaration.toString();
 		try {
-			method = astRoot
-					.getTypeRoot()
-					.findPrimaryType()
-					.createMethod(methodDeclaration.toString(), null,
-							overwrite, null);
+			method = astRoot.getTypeRoot().findPrimaryType()
+					.createMethod(content, null, overwrite, null);
 		} catch (JavaModelException e) {
 			logger.debug("Method could not be created: "
 					+ e.getLocalizedMessage());
 		}
 
-		if (overwrite) {
-			IMethod[] methods = astRoot.getTypeRoot().findPrimaryType()
-					.findMethods(method);
-			for (int i = 0; i < methods.length - 1; i++) {
-				methods[i].delete(false, null);
+		if (method != null) {
+			if (overwrite) {
+				IMethod[] methods = astRoot.getTypeRoot().findPrimaryType()
+						.findMethods(method);
+				for (int i = 0; i < methods.length - 1; i++) {
+					methods[i].delete(false, null);
+				}
 			}
 		}
 
@@ -237,7 +239,6 @@ public class JavaEditorDropListener implements DropTargetListener {
 		ASTRewrite rewrite = ASTRewrite.create(ast);
 
 		// description of the change
-		boolean exists = false;
 		for (Object typeObj : astRoot.types()) {
 			if (typeObj instanceof TypeDeclaration) {
 				TypeDeclaration typeDec = (TypeDeclaration) typeObj;
@@ -250,36 +251,34 @@ public class JavaEditorDropListener implements DropTargetListener {
 							.getString(
 									PreferenceConstants.P_OVERWRITE_ON_INSERT)
 							.equals("true")) {
-						rewrite.replace(typeDec, dropTypeDec, null);
-					}
-					exists = true;
-				}
-				if (!exists) {
-					ASTNode a = ASTNode.copySubtree(ast, dropTypeDec);
-					@SuppressWarnings("unchecked")
-					List<TypeDeclaration> types = astRoot.types();
-					ArrayList<TypeDeclaration> newTypes = new ArrayList<TypeDeclaration>();
-					newTypes.add((TypeDeclaration) a);
-					if (types.addAll(newTypes)) {
-						//
-						if (target.getElementName().equals(
-								typeDec.getName().toString() + ".java")) {
-							@SuppressWarnings("unchecked")
-							List<Modifier> modifiers = dropTypeDec.modifiers();
-							for (Modifier mod : modifiers) {
-								if (mod.getKeyword().toString()
-										.equals("public")) {
-									dropTypeDec.modifiers().remove(mod);
-									break;
-								}
-							}
-						}
-						icu.createType(dropTypeDec.toString(), null, true, null);
-						logger.debug("New type added successfully");
-						break;
+						rewrite.remove(typeDec, null);
 					}
 				}
 			}
+		}
+
+		ASTNode a = ASTNode.copySubtree(ast, dropTypeDec);
+		@SuppressWarnings("unchecked")
+		List<TypeDeclaration> types = astRoot.types();
+		ArrayList<TypeDeclaration> newTypes = new ArrayList<TypeDeclaration>();
+		newTypes.add((TypeDeclaration) a);
+		if (types.addAll(newTypes)) {
+			if (!target.getElementName().equals(
+					dropTypeDec.getName().toString() + ".java")) {
+				List<?> modifiers = dropTypeDec.modifiers();
+				for (Object mod : modifiers) {
+					if (mod instanceof Modifier) {
+						Modifier modifier = (Modifier) mod;
+						if (modifier.getKeyword().toString().equals("public")) {
+							dropTypeDec.modifiers().remove(modifier);
+							break;
+						}
+					}
+				}
+			}
+			String preambule = createPreambule(typeDeclaration) + "\r\n";
+			icu.createType(preambule + dropTypeDec.toString(), null, true, null);
+			logger.debug("New type added successfully");
 		}
 
 		String source = icu.getSource();
@@ -301,6 +300,25 @@ public class JavaEditorDropListener implements DropTargetListener {
 		icu.reconcile(ICompilationUnit.NO_AST, false, null, null);
 		icu.commitWorkingCopy(false, null);
 		icu.discardWorkingCopy();
+	}
+
+	/**
+	 * Creates a preambule string for the insertion with source and license
+	 * information
+	 * 
+	 * @param bodyDeclaration
+	 */
+	private String createPreambule(BodyDeclaration bodyDeclaration) {
+		String content = "";
+		String licenseType = (String) bodyDeclaration
+				.getProperty(ResultProperty.LICENSE.name());
+		if (licenseType != null && !licenseType.equals("no license")) {
+			content += "// Released under the terms of the " + licenseType
+					+ "\r\n";
+		}
+		content += "// Origin: "
+				+ bodyDeclaration.getProperty(ResultProperty.SHORT_URL.name());
+		return content;
 	}
 
 }
