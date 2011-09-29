@@ -220,18 +220,25 @@ public class ResultView extends ViewPart implements SearchEventListener,
 				updateStatus("A server error occured during the search. Check your settings and contact the administrator if this problem persists.");
 			} else if (event == SearchEvent.INVALID_USER) {
 				updateStatus("Invalid username / password. Please check your preference settings.");
+			} else if (event == SearchEvent.INVALID_USER) {
+				updateStatus("Search cancelled. Close connection...");
 			} else {
 				updateStatus();
 			}
 		}
 	}
 
+	/**
+	 * This method is used to update the view and the status line
+	 * 
+	 * @param event
+	 */
 	@Override
 	public void onEvent(UIEvent event) {
 		this.showBusy(true);
 		final ResultView view = this;
 		if (event == UIEvent.REFRESH) {
-			logger.debug("Refresh ResultTres");
+			logger.debug("Refresh ResultTree");
 			PluginUI.getWindow().getWorkbench().getDisplay()
 					.asyncExec(new Runnable() {
 						@Override

@@ -32,6 +32,11 @@ import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 public class TestDrivenSearch extends Search {
 
+	long eta = -1;
+	private int successfullyTested = -1;
+	private int completelyTested = -1;
+	private int candidates = -1;
+
 	public TestDrivenSearch(IEditorPart editor, String name, Query query) {
 		super(editor, name, query);
 		super.type = Search.TEST;
@@ -62,24 +67,42 @@ public class TestDrivenSearch extends Search {
 					numResults);
 			logger.debug("Received session id: " + session);
 
-			if (session.contains("Invalid Username or Password")) {
+			// Check for invalid login
+			if (ws.isLoginFailed()) {
 				notifySearchEventListeners(SearchEvent.INVALID_USER);
+				return Status.CANCEL_STATUS;
+			}
+
+			// Show error message from server
+			if (session == null) {
+				notifySearchEventListeners(SearchEvent.ERROR);
 				return Status.CANCEL_STATUS;
 			}
 
 			notifySearchEventListeners(SearchEvent.TEST_STARTED);
 
+			int size = ws.getResultSize();
+			logger.debug("Test " + size + " candidates...");
+			monitor.beginTask("Testing...", numResults);
+
 			// Wait for results
 			int loop = 0;
+			int tested = 0;
+
 			while (!ws.isFinished()) {
+				eta = ws.getTimeLeft();
+				successfullyTested = ws.getSuccessfullyTested();
+				completelyTested = ws.getCompletelyTested();
+				candidates = ws.getResultSize();
 				if (monitor.isCanceled()) {
 					logger.debug("Enable searching again.");
 					notifySearchEventListeners(SearchEvent.CANCELLED);
 					return Status.CANCEL_STATUS;
 				}
-				logger.debug("Search still in progress... #" + result.size());
+				logger.debug("Search still in progress... " + completelyTested
+						+ " tested of " + candidates + " candidates. Successful: " + successfullyTested);
 				// Sleep timer increases with every iteration to a 10s maximum.
-				int sleep = Math.min(loop++, 5);
+				int sleep = Math.min(loop++, 3);
 				logger.debug("Sleep for " + sleep + " seconds.");
 				try {
 					TimeUnit.SECONDS.sleep(sleep);
@@ -87,6 +110,13 @@ public class TestDrivenSearch extends Search {
 					notifySearchEventListeners(SearchEvent.CANCELLED);
 					return Status.CANCEL_STATUS;
 				}
+				int inc = 0;
+				if (ws.getCompletelyTested() > tested) {
+					inc = completelyTested - tested;
+					tested = completelyTested;
+				}
+				logger.debug("Tested: " + tested + " / Increment: " + inc);
+				monitor.worked(inc);
 			}
 			// Store results
 			ArrayList<ResultBean> results = ws.getResults(session);
@@ -139,7 +169,36 @@ public class TestDrivenSearch extends Search {
 	@Override
 	protected void canceling() {
 		super.canceling();
-		logger.debug("Canceling Search Job");
+		logger.debug("Cancelling Search Job");
 		Thread.currentThread().interrupt();
 	}
+
+	/**
+	 * @return the estimated time left
+	 */
+	public long getEta() {
+		return eta;
+	}
+
+	/**
+	 * @return the successfully tested
+	 */
+	public int getSuccessfullyTested() {
+		return successfullyTested;
+	}
+
+	/**
+	 * @return the number of already tested
+	 */
+	public int getCompletelyTested() {
+		return completelyTested;
+	}
+
+	/**
+	 * @return the number of candidates
+	 */
+	public int getCandidates() {
+		return candidates;
+	}
+
 }

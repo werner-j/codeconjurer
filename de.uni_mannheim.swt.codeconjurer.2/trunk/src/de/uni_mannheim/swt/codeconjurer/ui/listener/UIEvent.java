@@ -17,5 +17,5 @@ package de.uni_mannheim.swt.codeconjurer.ui.listener;
  * 
  */
 public enum UIEvent {
-	CREATED, REFRESH
+	CREATED, REFRESH, SETSTATUS
 }
