@@ -100,7 +100,8 @@ public class TestDrivenSearch extends Search {
 					return Status.CANCEL_STATUS;
 				}
 				logger.debug("Search still in progress... " + completelyTested
-						+ " tested of " + candidates + " candidates. Successful: " + successfullyTested);
+						+ " tested of " + candidates
+						+ " candidates. Successful: " + successfullyTested);
 				// Sleep timer increases with every iteration to a 10s maximum.
 				int sleep = Math.min(loop++, 3);
 				logger.debug("Sleep for " + sleep + " seconds.");
@@ -141,7 +142,7 @@ public class TestDrivenSearch extends Search {
 					logger.debug("Could not retrieve sourcecode for "
 							+ r.getProperty(ResultProperty.SHORT_URL));
 					e.printStackTrace();
-					notifySearchEventListeners(SearchEvent.SERVERERROR);
+					// notifySearchEventListeners(SearchEvent.SERVERERROR);
 					// return Status.CANCEL_STATUS;
 				}
 				result.addSource(r.getProperty(ResultProperty.SHORT_URL),
