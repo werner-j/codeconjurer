@@ -1,0 +1,112 @@
+/*
+ * Copyright (c) 2007-2011
+ * University of Mannheim, Chair for Software-Engineering
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Werner Janjic -- initial development and documentation
+ */
+package de.uni_mannheim.swt.codeconjurer.techsrv;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.net.URLConnection;
+
+import org.apache.log4j.Logger;
+import org.eclipse.core.runtime.Platform;
+
+import com.merotronics.merobase.ws.action.IOException_Exception;
+
+import de.uni_mannheim.swt.codeconjurer.Activator;
+import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
+
+/**
+ * This class is used to send crash reports of Code Conjurer to the maintainers
+ * to detect bugs.
+ * 
+ * @author Werner Janjic
+ */
+public class CrashReporter {
+
+	private static Logger logger = Logger.getLogger(CrashReporter.class);
+
+	public static boolean reportException(IOException_Exception ex) {
+		return reportException(ex.getCause());
+	}
+
+	/**
+	 * Send a stacktrace of the exception to the report-collection system
+	 * 
+	 * @param ex
+	 * @return
+	 */
+	public static boolean reportException(Throwable ex) {
+
+		if (Activator.getDefault().getPreferenceStore()
+				.getBoolean(PreferenceConstants.P_UDC)) {
+			logger.debug("Report exception to devs...");
+			// Build parameter string
+			String data = "reportType=exception&" + "message="
+					+ ex.getMessage();
+			data += "&build="
+					+ Platform.getBundle("de.uni_mannheim.swt.codeconjurer")
+							.getHeaders().get("Bundle-Version");
+			int ln = 0;
+			for (StackTraceElement el : ex.getStackTrace()) {
+				data += "&st_line_" + ++ln + "=" + el.getClassName() + "#"
+						+ el.getMethodName() + "<" + el.getLineNumber() + ">";
+			}
+			data += "&lines=" + ln;
+			data += "&Suppl-Server="
+					+ Activator.getDefault().getPreferenceStore()
+							.getString(PreferenceConstants.P_SERVER);
+			data += "&Suppl-User="
+					+ Activator.getDefault().getPreferenceStore()
+							.getString(PreferenceConstants.P_USERNAME);
+
+			try {
+
+				// Send the request
+				URL url = new URL(
+						"http://www.merobase.com:7777/org.code_conjurer.udc/CrashReport");
+				URLConnection conn = url.openConnection();
+				conn.setDoOutput(true);
+				OutputStreamWriter writer = new OutputStreamWriter(
+						conn.getOutputStream());
+
+				// write parameters
+				writer.write(data);
+				writer.flush();
+
+				// Get the response
+				StringBuffer answer = new StringBuffer();
+				BufferedReader reader = new BufferedReader(
+						new InputStreamReader(conn.getInputStream()));
+				String line;
+				while ((line = reader.readLine()) != null) {
+					answer.append(line + "\r\n");
+				}
+				writer.close();
+				reader.close();
+
+				// Output the response
+				logger.debug(answer.toString());
+
+			} catch (Exception ex1) {
+				logger.debug("Could not report exception");
+				return false;
+			}
+
+			return true;
+		} else {
+			logger.debug("Reporting not wished!");
+			return false;
+		}
+	}
+}
