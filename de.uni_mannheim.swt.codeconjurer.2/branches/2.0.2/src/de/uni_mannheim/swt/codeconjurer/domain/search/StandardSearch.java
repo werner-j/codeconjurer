@@ -13,6 +13,7 @@
 package de.uni_mannheim.swt.codeconjurer.domain.search;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -38,6 +39,11 @@ public class StandardSearch extends Search {
 
 	@Override
 	protected IStatus run(IProgressMonitor monitor) {
+		HashMap<String, String> supplInf = new HashMap<String, String>();
+
+		supplInf.put("Query", query.getSource());
+		supplInf.put("MQL-Query", query.getMqlQuery());
+
 		String serverLocation = Activator.getDefault().getPreferenceStore()
 				.getString(PreferenceConstants.P_SERVER);
 		String username = Activator.getDefault().getPreferenceStore()
@@ -46,6 +52,8 @@ public class StandardSearch extends Search {
 				.getString(PreferenceConstants.P_PASSWORD);
 		int numResults = Integer.parseInt(Activator.getDefault()
 				.getPreferenceStore().getString(PreferenceConstants.P_RESULTS));
+
+		supplInf.put("NumResults", "#" + numResults);
 
 		try {
 			WSConnection ws = new WSConnection(serverLocation);
@@ -102,7 +110,7 @@ public class StandardSearch extends Search {
 							r.getProperty(ResultProperty.SHORT_URL), username,
 							password, 10);
 				} catch (Exception e) {
-					CrashReporter.reportException(e);
+					CrashReporter.reportException(e, supplInf);
 					logger.debug(e.getLocalizedMessage());
 					source = "/** Source could not be fetched */";
 				}

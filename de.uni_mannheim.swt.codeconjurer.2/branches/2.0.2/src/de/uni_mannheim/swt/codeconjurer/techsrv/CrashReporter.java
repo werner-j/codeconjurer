@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.Platform;
@@ -40,13 +41,18 @@ public class CrashReporter {
 		return reportException(ex.getCause());
 	}
 
+	public static boolean reportException(Throwable ex) {
+		return reportException(ex, null);
+	}
+
 	/**
 	 * Send a stacktrace of the exception to the report-collection system
 	 * 
 	 * @param ex
 	 * @return
 	 */
-	public static boolean reportException(Throwable ex) {
+	public static boolean reportException(Throwable ex,
+			HashMap<String, String> suppl) {
 
 		if (Activator.getDefault().getPreferenceStore()
 				.getBoolean(PreferenceConstants.P_UDC)) {
@@ -69,6 +75,11 @@ public class CrashReporter {
 			data += "&Suppl-User="
 					+ Activator.getDefault().getPreferenceStore()
 							.getString(PreferenceConstants.P_USERNAME);
+			if (suppl != null) {
+				for (String key : suppl.keySet()) {
+					data += "&Suppl-" + key + "=" + suppl.get(key);
+				}
+			}
 
 			try {
 
