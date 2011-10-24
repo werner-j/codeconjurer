@@ -134,6 +134,9 @@ public class ResultItem {
 						properties.get(ResultProperty.EXECUTABILITY));
 				typeDec.setProperty(ResultProperty.LICENSE.name(),
 						properties.get(ResultProperty.LICENSE));
+			} else {
+				logger.debug("No primary type for "
+						+ properties.get(ResultProperty.SHORT_URL));
 			}
 			return typeDec;
 		} else {

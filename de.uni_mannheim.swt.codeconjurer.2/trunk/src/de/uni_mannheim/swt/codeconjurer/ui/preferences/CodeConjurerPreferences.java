@@ -62,6 +62,9 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 				PreferenceConstants.P_OVERWRITE_ON_INSERT,
 				"Overwrite on Insert", BooleanFieldEditor.SEPARATE_LABEL,
 				getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PreferenceConstants.P_UDC,
+				"Report Crash to Developers",
+				BooleanFieldEditor.SEPARATE_LABEL, getFieldEditorParent()));
 	}
 
 	/*

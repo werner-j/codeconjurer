@@ -20,6 +20,8 @@ import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
+
 /**
  * @author Werner Janjic
  * 
@@ -69,11 +71,12 @@ public class Query {
 		try {
 			superclass = primaryType.getSuperclassName();
 			if (superclass != null && superclass.equals("TestCase")) {
-				query = primaryType.getSource();
+				query = primaryType.getSource() + " // <con>(protocol:cvs OR protocol:svn)</con>";
 			} else {
 				query = getMqlQuery(primaryType);
 			}
 		} catch (Exception e) {
+			CrashReporter.reportException(e);
 			logger.debug(e.getLocalizedMessage());
 		}
 		return query;
@@ -107,9 +110,10 @@ public class Query {
 							+ "; ");
 				}
 			}
-			query.append(") lang:java type:class form:source original:yes");
-		} catch (Exception ex) {
-			logger.warn(ex.getMessage());
+			query.append(") lang:java type:class form:source original:yes (protocol:cvs OR protocol:svn)");
+		} catch (Exception e) {
+			CrashReporter.reportException(e);
+			logger.warn(e.getMessage());
 		}
 
 		return query.toString();
@@ -124,6 +128,7 @@ public class Query {
 		try {
 			return typeRoot.getSource();
 		} catch (JavaModelException e) {
+			CrashReporter.reportException(e);
 			logger.warn(e.getMessage());
 			return null;
 		}
@@ -154,6 +159,9 @@ public class Query {
 					return superclass.equals("TestCase") ? "tds" : "standard";
 				}
 			} catch (Exception e) {
+				CrashReporter.reportException(e,
+						"No primary type found when trying to identify type.",
+						null);
 				logger.debug("No primary type found when trying to identify type.\r\n"
 						+ e.getMessage());
 				return "";

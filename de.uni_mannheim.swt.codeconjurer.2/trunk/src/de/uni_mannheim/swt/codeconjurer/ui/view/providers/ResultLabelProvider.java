@@ -12,6 +12,7 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.view.providers;
 
+import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -36,6 +37,8 @@ import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
  */
 public class ResultLabelProvider extends LabelProvider implements
 		ITableLabelProvider, ITableColorProvider {
+
+	private Logger logger = Logger.getLogger(ResultLabelProvider.class);
 
 	@Override
 	public Image getColumnImage(Object item, int columnIndex) {
@@ -81,6 +84,7 @@ public class ResultLabelProvider extends LabelProvider implements
 			return ((MethodDeclaration) element).getName()
 					.getFullyQualifiedName();
 		}
+		logger.debug("No text");
 		return null;
 	}
 

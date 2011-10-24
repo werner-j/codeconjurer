@@ -99,6 +99,23 @@ public class Result extends Observable {
 	}
 
 	/**
+	 * Returns the number of candidates from this set that passed the test case
+	 * of a test-driven search
+	 * 
+	 * @return
+	 */
+	public int getNumberOfSuccessfulTests() {
+		int passes = 0;
+		for (ResultItem result : resultItems.values()) {
+			if (result.getProperty(ResultProperty.EXECUTABILITY).equals(
+					"TESTED")) {
+				passes++;
+			}
+		}
+		return passes;
+	}
+
+	/**
 	 * Returns the <code>ResultItem</code> for the given URL
 	 * 
 	 * @param shortUrl

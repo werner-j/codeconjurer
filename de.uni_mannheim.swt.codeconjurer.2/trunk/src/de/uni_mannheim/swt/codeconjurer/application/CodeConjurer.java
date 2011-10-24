@@ -31,6 +31,7 @@ import de.uni_mannheim.swt.codeconjurer.domain.search.Query;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
 import de.uni_mannheim.swt.codeconjurer.domain.search.StandardSearch;
 import de.uni_mannheim.swt.codeconjurer.domain.search.TestDrivenSearch;
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 /**
@@ -90,6 +91,7 @@ public class CodeConjurer {
 					try {
 						search.join();
 					} catch (InterruptedException e) {
+						CrashReporter.reportException(e);
 						e.printStackTrace();
 					}
 				}
@@ -158,6 +160,7 @@ public class CodeConjurer {
 				try {
 					s.join();
 				} catch (InterruptedException e) {
+					CrashReporter.reportException(e);
 					logger.debug("Could not cancel Job: " + e.getMessage());
 				}
 			}

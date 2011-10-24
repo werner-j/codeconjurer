@@ -39,6 +39,7 @@ import org.eclipse.text.edits.TextEdit;
 import de.uni_mannheim.swt.codeconjurer.Activator;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 /**
@@ -146,6 +147,7 @@ public class JavaEditorDropListener implements DropTargetListener {
 						break;
 					}
 				} catch (Exception e) {
+					CrashReporter.reportException(e);
 					logger.debug("Could not modify editor content: "
 							+ e.getLocalizedMessage());
 					e.printStackTrace();
@@ -190,6 +192,7 @@ public class JavaEditorDropListener implements DropTargetListener {
 			method = astRoot.getTypeRoot().findPrimaryType()
 					.createMethod(content, null, overwrite, null);
 		} catch (JavaModelException e) {
+			CrashReporter.reportException(e);
 			logger.debug("Method could not be created: "
 					+ e.getLocalizedMessage());
 		}

@@ -28,6 +28,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.controller.ResultDoubleClickListener;
 import de.uni_mannheim.swt.codeconjurer.ui.dnd.BodyDeclarationTransfer;
 import de.uni_mannheim.swt.codeconjurer.ui.dnd.SourceDragListener;
@@ -136,13 +137,26 @@ public class ResultTree {
 							return;
 						}
 						try {
-							if (selection != null && selection.length > 0)
-								treeViewer.getTree().setSelection(selection);
+							if (selection != null && selection.length > 0) {
+								// Set selection only if no item is disposed
+								// (resource change, e.g.)
+								boolean disposed = false;
+								for (TreeItem item : selection) {
+									if (item.isDisposed())
+										disposed = true;
+								}
+								if (!disposed) {
+									treeViewer.getTree()
+											.setSelection(selection);
+								}
+							}
+
 							if (expandedElements != null
 									&& expandedElements.length > 0)
 								treeViewer
 										.setExpandedElements(expandedElements);
 						} catch (Exception e) {
+							CrashReporter.reportException(e);
 							logger.debug("Exception setting tree status: "
 									+ e.getLocalizedMessage());
 							logger.debug("Selection is " + selection);

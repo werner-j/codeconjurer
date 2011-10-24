@@ -13,6 +13,7 @@
 package de.uni_mannheim.swt.codeconjurer.domain.search;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -28,6 +29,7 @@ import de.uni_mannheim.swt.codeconjurer.domain.listener.SearchEvent;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultItem;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 
 public class StandardSearch extends Search {
 
@@ -38,6 +40,10 @@ public class StandardSearch extends Search {
 
 	@Override
 	protected IStatus run(IProgressMonitor monitor) {
+		HashMap<String, String> supplInf = new HashMap<String, String>();
+
+		supplInf.put("Query", query.getQuery());
+
 		String serverLocation = Activator.getDefault().getPreferenceStore()
 				.getString(PreferenceConstants.P_SERVER);
 		String username = Activator.getDefault().getPreferenceStore()
@@ -47,13 +53,15 @@ public class StandardSearch extends Search {
 		int numResults = Integer.parseInt(Activator.getDefault()
 				.getPreferenceStore().getString(PreferenceConstants.P_RESULTS));
 
+		supplInf.put("MaxNumResults", "#" + numResults);
+
 		try {
 			WSConnection ws = new WSConnection(serverLocation);
 			String session = "";
+			String queryString = query.getQuery();
 			try {
 				logger.debug("Initialize search for " + numResults
 						+ " components at " + serverLocation + ".");
-				String queryString = query.getQuery();
 				if (queryString.equals("")) {
 					notifySearchEventListeners(SearchEvent.ERROR);
 					return Status.CANCEL_STATUS;
@@ -61,9 +69,10 @@ public class StandardSearch extends Search {
 				session = ws.initComponentSearch(queryString, username,
 						password, numResults);
 				logger.debug("Received session id: " + session);
-			} catch (IOException_Exception e1) {
+			} catch (IOException_Exception e) {
+				CrashReporter.reportException(e, supplInf);
 				logger.debug("Problem initializing search: "
-						+ e1.getLocalizedMessage());
+						+ e.getLocalizedMessage());
 			}
 
 			if (session.contains("Invalid Username or Password")) {
@@ -103,8 +112,13 @@ public class StandardSearch extends Search {
 				String urlString = r.getProperty(ResultProperty.SHORT_URL);
 				try {
 					source = ws.componentSource(urlString, username, password,
-							10);
+							10000);
 				} catch (Exception e) {
+					CrashReporter.reportException(
+							e,
+							"Could not fetch"
+									+ r.getProperty(ResultProperty.SHORT_URL),
+							supplInf);
 					logger.debug(e.getLocalizedMessage());
 					source = "/** Source could not be fetched */";
 				}
@@ -120,6 +134,7 @@ public class StandardSearch extends Search {
 				}
 			}
 		} catch (Exception e) {
+			CrashReporter.reportException(e, supplInf);
 			logger.debug("Exception: " + e.getLocalizedMessage());
 			e.printStackTrace();
 			notifySearchEventListeners(SearchEvent.SERVERERROR);

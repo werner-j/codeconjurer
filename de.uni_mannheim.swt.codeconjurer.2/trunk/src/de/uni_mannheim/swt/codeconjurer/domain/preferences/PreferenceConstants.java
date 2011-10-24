@@ -25,6 +25,9 @@ public class PreferenceConstants {
 
 	public static final String P_RESULTS = "numberOfResultsToRetrieve";
 
+	public static final String P_FORMAT = "formatSourceOnInsert";
+
 	public static final String P_OVERWRITE_ON_INSERT = "overwriteOnInsert";
 
+	public static final String P_UDC = "udcFeature";
 }

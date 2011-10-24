@@ -20,6 +20,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIListener;
 
@@ -83,9 +84,10 @@ public class PluginUI {
 										.showView(
 												"de.uni_mannheim.swt.codeconjurer.views.ResultView");
 							}
-						} catch (PartInitException e1) {
+						} catch (PartInitException e) {
+							CrashReporter.reportException(e);
 							logger.debug("Could not open Reuse View!\r\n"
-									+ e1.getLocalizedMessage());
+									+ e.getLocalizedMessage());
 						}
 					}
 				});

@@ -18,6 +18,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.view.ResultView;
 
 /**
@@ -46,6 +47,7 @@ public class ShowReuseView implements IWorkbenchWindowActionDelegate {
 			reuseView = (ResultView) window.getActivePage().showView(
 					"de.uni_mannheim.swt.codeconjurer.views.ResultView");
 		} catch (Exception e) {
+			CrashReporter.reportException(e);
 			logger.debug("Exception: " + e.getLocalizedMessage());
 		}
 	}

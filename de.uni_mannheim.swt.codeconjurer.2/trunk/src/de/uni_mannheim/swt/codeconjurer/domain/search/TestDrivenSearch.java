@@ -13,6 +13,7 @@
 package de.uni_mannheim.swt.codeconjurer.domain.search;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -28,6 +29,7 @@ import de.uni_mannheim.swt.codeconjurer.domain.listener.SearchEvent;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultItem;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 public class TestDrivenSearch extends Search {
@@ -44,6 +46,10 @@ public class TestDrivenSearch extends Search {
 
 	@Override
 	protected IStatus run(IProgressMonitor monitor) {
+		HashMap<String, String> supplInf = new HashMap<String, String>();
+
+		supplInf.put("Query", query.getQuery());
+
 		String serverLocation = Activator.getDefault().getPreferenceStore()
 				.getString(PreferenceConstants.P_SERVER);
 		String username = Activator.getDefault().getPreferenceStore()
@@ -52,6 +58,8 @@ public class TestDrivenSearch extends Search {
 				.getString(PreferenceConstants.P_PASSWORD);
 		int numResults = Integer.parseInt(Activator.getDefault()
 				.getPreferenceStore().getString(PreferenceConstants.P_RESULTS));
+
+		supplInf.put("MaxNumResults", "#" + numResults);
 
 		try {
 			WSConnection ws = new WSConnection(serverLocation);
@@ -108,6 +116,7 @@ public class TestDrivenSearch extends Search {
 				try {
 					TimeUnit.SECONDS.sleep(sleep);
 				} catch (InterruptedException e) {
+					CrashReporter.reportException(e, supplInf);
 					notifySearchEventListeners(SearchEvent.CANCELLED);
 					return Status.CANCEL_STATUS;
 				}
@@ -115,8 +124,16 @@ public class TestDrivenSearch extends Search {
 				if (ws.getCompletelyTested() > tested) {
 					inc = completelyTested - tested;
 					tested = completelyTested;
+
+					ArrayList<ResultBean> results = ws.getResults(session);
+					logger.debug("Webservice returned " + results.size()
+							+ " results from Merobase.");
+					result.setResultList(results);
+					notifySearchEventListeners(SearchEvent.RESULT_ADDED);
 				}
+
 				logger.debug("Tested: " + tested + " / Increment: " + inc);
+
 				monitor.worked(inc);
 			}
 			// Store results
@@ -135,8 +152,13 @@ public class TestDrivenSearch extends Search {
 				try {
 					source = ws.componentSource(
 							r.getProperty(ResultProperty.SHORT_URL), username,
-							password, 10);
+							password, 10000);
 				} catch (Exception e) {
+					CrashReporter.reportException(
+							e,
+							"Could not fetch "
+									+ r.getProperty(ResultProperty.SHORT_URL),
+							supplInf);
 					source = "/** Source could not be fetched from "
 							+ r.getProperty(ResultProperty.SHORT_URL) + " */";
 					logger.debug("Could not retrieve sourcecode for "
@@ -160,6 +182,7 @@ public class TestDrivenSearch extends Search {
 			notifySearchEventListeners(SearchEvent.FINISHED);
 			return Status.OK_STATUS;
 		} catch (Throwable e) {
+			CrashReporter.reportException(e, supplInf);
 			logger.debug("Problem during search: " + e.getMessage());
 			notifySearchEventListeners(SearchEvent.SERVERERROR);
 			e.printStackTrace();

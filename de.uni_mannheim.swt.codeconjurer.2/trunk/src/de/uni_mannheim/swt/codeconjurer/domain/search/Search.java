@@ -39,6 +39,8 @@ public abstract class Search extends Job {
 	protected Query query;
 	protected Result result;
 
+	protected boolean finished = false;
+
 	private IEditorPart editor;
 
 	protected int type = 0;
@@ -81,6 +83,20 @@ public abstract class Search extends Job {
 		for (SearchEventListener listener : listeners) {
 			listener.onEvent(event);
 		}
+	}
+
+	protected void done() {
+		finished = true;
+	}
+
+	/**
+	 * Returns true if this Job is finished and false if the Search is still in
+	 * progress.
+	 * 
+	 * @return
+	 */
+	public boolean isFinished() {
+		return finished;
 	}
 
 }

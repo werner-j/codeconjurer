@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.log4j.Logger;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -46,6 +47,7 @@ import de.uni_mannheim.swt.codeconjurer.domain.listener.SearchEventListener;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.Result;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.dnd.BodyDeclarationTransfer;
 import de.uni_mannheim.swt.codeconjurer.ui.dnd.JavaEditorDropListener;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
@@ -194,7 +196,9 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		final ResultView view = this;
 		// An update of the tree should happen at all changes except for a
 		// successfully downloaded source (to prevent flickering)
-		if (event != SearchEvent.SOURCE_ADDED) {
+		if (event != SearchEvent.SOURCE_ADDED
+				&& !PluginUI.getWindow().getWorkbench().getDisplay()
+						.isDisposed()) {
 			logger.debug("Refresh ResultTres");
 			PluginUI.getWindow().getWorkbench().getDisplay()
 					.asyncExec(new Runnable() {
@@ -294,10 +298,11 @@ public class ResultView extends ViewPart implements SearchEventListener,
 						dropTarget.setTransfer(transfers
 								.toArray(new Transfer[transfers.size()]));
 					}
-				} catch (Exception t) {
+				} catch (Exception e) {
+					CrashReporter.reportException(e);
 					logger.debug("Could not register drop service: "
-							+ t.getMessage());
-					t.printStackTrace();
+							+ e.getMessage());
+					e.printStackTrace();
 				}
 			}
 			updateStatus();
@@ -426,19 +431,26 @@ public class ResultView extends ViewPart implements SearchEventListener,
 									message = (results
 											+ " results found. "
 											+ result.getNumberOfSuccessfullyFetchedSources()
-											+ " items successfully retrieved. :: Result created " + result
+											+ " items successfully downloaded. :: Result created " + result
 											.getCreationDate());
 								}
 								break;
 
 							case Search.TEST:
 								result = search.getSearchResult();
+								int passes = result
+										.getNumberOfSuccessfulTests();
 								results = result.getResultItems().length;
-								if (results > 0) {
-									message = (results
+								if (search.getState() == Job.RUNNING) {
+									message = "Testing in progress... ";
+								}
+								if (passes > 0) {
+									message += (passes
+											+ " of "
+											+ results
 											+ " candidates passed test. "
 											+ result.getNumberOfSuccessfullyFetchedSources()
-											+ " items successfully retrieved. :: Result created " + result
+											+ " items successfully downloaded. :: Result created " + result
 											.getCreationDate());
 								}
 								break;

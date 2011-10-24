@@ -27,6 +27,7 @@ import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultItem;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 
 /**
  * 
@@ -78,6 +79,7 @@ public class BodyDeclarationTransfer extends ByteArrayTransfer {
 				writeOut.close();
 				super.javaToNative(buffer, transferData);
 			} catch (IOException e) {
+				CrashReporter.reportException(e);
 				logger.debug("Failed to convert to native.");
 			}
 		}
@@ -115,7 +117,8 @@ public class BodyDeclarationTransfer extends ByteArrayTransfer {
 					logger.debug("Rematerialized \r\n" + bodyDec.toString());
 				}
 				readIn.close();
-			} catch (IOException ex) {
+			} catch (IOException e) {
+				CrashReporter.reportException(e);
 				logger.debug("Could not materialize transfer data!");
 				return null;
 			}
