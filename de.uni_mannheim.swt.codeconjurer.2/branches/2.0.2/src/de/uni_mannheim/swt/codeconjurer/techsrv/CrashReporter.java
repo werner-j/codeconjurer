@@ -41,8 +41,29 @@ public class CrashReporter {
 		return reportException(ex.getCause());
 	}
 
+	/**
+	 * Report an exception
+	 * 
+	 * @param ex
+	 * @return
+	 */
 	public static boolean reportException(Throwable ex) {
 		return reportException(ex, null);
+	}
+
+	/**
+	 * Report an exception and accompany it with an arbitrary cause string and
+	 * supplementary information
+	 * 
+	 * @param ex
+	 * @param cause
+	 * @param suppl
+	 * @return
+	 */
+	public static boolean reportException(Throwable ex, String cause,
+			HashMap<String, String> suppl) {
+		suppl.put("Cause", cause);
+		return reportException(ex, suppl);
 	}
 
 	/**
@@ -69,6 +90,7 @@ public class CrashReporter {
 						+ el.getMethodName() + "<" + el.getLineNumber() + ">";
 			}
 			data += "&lines=" + ln;
+			data += "&Suppl-Description=" + ex.toString();
 			data += "&Suppl-Server="
 					+ Activator.getDefault().getPreferenceStore()
 							.getString(PreferenceConstants.P_SERVER);
