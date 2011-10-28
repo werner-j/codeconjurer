@@ -23,6 +23,8 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
+import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
+import de.uni_mannheim.swt.codeconjurer.techsrv.UsageDataSender;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -44,7 +46,7 @@ public class Activator extends AbstractUIPlugin {
 		PatternLayout layout = new PatternLayout("%-5p %c{1}: %m%n");
 		ConsoleAppender appender = new ConsoleAppender(layout);
 		Logger.getRootLogger().addAppender(appender);
-		Logger.getRootLogger().setLevel(Level.ALL);
+		Logger.getRootLogger().setLevel(Level.INFO);
 		Logger.getLogger(Activator.class).debug(
 				"Code Conjurer plug-in loaded...");
 	}
@@ -59,6 +61,22 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+
+		// Count the number of CC launches
+		int launches = getDefault().getPreferenceStore().getInt(
+				PreferenceConstants.P_LAUNCH);
+		getDefault().getPreferenceStore().setValue(
+				PreferenceConstants.P_LAUNCH, ++launches);
+
+		Logger.getLogger(Activator.class).debug(
+				"Code Conjurer plug-in start #" + launches);
+
+		// Report number of launches from time to time
+		if (launches < 2 || launches % 10 == 0) {
+			UsageDataSender.sendInformation(new String[] { "Launches_"
+					+ launches });
+		}
+
 	}
 
 	/*

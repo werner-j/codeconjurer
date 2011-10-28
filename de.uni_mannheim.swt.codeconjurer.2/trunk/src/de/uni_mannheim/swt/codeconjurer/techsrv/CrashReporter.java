@@ -75,8 +75,9 @@ public class CrashReporter {
 	public static boolean reportException(Throwable ex,
 			HashMap<String, String> suppl) {
 
+		// Check if we should send reports
 		if (Activator.getDefault().getPreferenceStore()
-				.getBoolean(PreferenceConstants.P_UDC)) {
+				.getBoolean(PreferenceConstants.P_CRASH_REPORTING)) {
 			logger.debug("Report exception to devs...");
 			// Build parameter string
 			String data = "reportType=exception&" + "message="
@@ -113,11 +114,11 @@ public class CrashReporter {
 				OutputStreamWriter writer = new OutputStreamWriter(
 						conn.getOutputStream());
 
-				// write parameters
+				// Send parameters to server
 				writer.write(data);
 				writer.flush();
 
-				// Get the response
+				// Get the server's response
 				StringBuffer answer = new StringBuffer();
 				BufferedReader reader = new BufferedReader(
 						new InputStreamReader(conn.getInputStream()));
@@ -128,10 +129,10 @@ public class CrashReporter {
 				writer.close();
 				reader.close();
 
-				// Output the response
+				// Log the response
 				logger.debug(answer.toString());
 
-			} catch (Exception ex1) {
+			} catch (Exception e) {
 				logger.debug("Could not report exception");
 				return false;
 			}
@@ -141,5 +142,6 @@ public class CrashReporter {
 			logger.debug("Reporting not wished!");
 			return false;
 		}
+
 	}
 }

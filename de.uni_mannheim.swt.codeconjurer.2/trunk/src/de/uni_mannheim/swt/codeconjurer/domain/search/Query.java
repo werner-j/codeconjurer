@@ -71,7 +71,8 @@ public class Query {
 		try {
 			superclass = primaryType.getSuperclassName();
 			if (superclass != null && superclass.equals("TestCase")) {
-				query = primaryType.getSource() + " // <con>(protocol:cvs OR protocol:svn)</con>";
+				query = primaryType.getSource()
+						+ " // <con>(protocol:cvs OR protocol:svn) original:yes</con>";
 			} else {
 				query = getMqlQuery(primaryType);
 			}

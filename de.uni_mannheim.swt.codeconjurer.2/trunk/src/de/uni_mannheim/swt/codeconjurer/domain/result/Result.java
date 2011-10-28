@@ -24,6 +24,8 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 import com.merotronics.merobase.ws.action.ResultBean;
 
+import de.uni_mannheim.swt.codeconjurer.domain.search.Query;
+
 /**
  * @author Werner Janjic
  * 
@@ -31,6 +33,9 @@ import com.merotronics.merobase.ws.action.ResultBean;
 public class Result extends Observable {
 
 	private Logger logger = Logger.getLogger(Result.class);
+
+	private Query query;
+	private String sessionId;
 
 	// SHORT_URL, ResultItem
 	private HashMap<String, ResultItem> resultItems = new HashMap<String, ResultItem>();
@@ -67,10 +72,40 @@ public class Result extends Observable {
 	public void addResultList(ArrayList<ResultBean> results) {
 		for (ResultBean result : results) {
 			ResultItem resultItem = new ResultItem(result);
+			resultItem.setQuery(query);
+			resultItem.setSearchId(sessionId);
 			resultItems.put(result.getShortUrl(), resultItem);
 		}
 		setChanged();
 		notifyObservers();
+	}
+
+	/**
+	 * This method may be used to add new results without touching existing
+	 * ones. This may be used to avoid fetching source code again for previously
+	 * found members.
+	 * 
+	 * @param results
+	 * @return true if new results were added, false else
+	 */
+	public boolean updateResultList(ArrayList<ResultBean> results) {
+		boolean newResult = false;
+		for (ResultBean result : results) {
+			if (!resultItems.containsKey(result.getShortUrl())) {
+				ResultItem resultItem = new ResultItem(result);
+				resultItem.setQuery(query);
+				resultItem.setSearchId(sessionId);
+				resultItems.put(result.getShortUrl(), resultItem);
+				newResult = true;
+			}
+		}
+		if (newResult) {
+			setChanged();
+			notifyObservers();
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -82,6 +117,8 @@ public class Result extends Observable {
 		resultItems = new HashMap<String, ResultItem>();
 		for (ResultBean result : results) {
 			ResultItem resultItem = new ResultItem(result);
+			resultItem.setQuery(query);
+			resultItem.setSearchId(sessionId);
 			resultItems.put(result.getShortUrl(), resultItem);
 		}
 		setChanged();
@@ -191,6 +228,36 @@ public class Result extends Observable {
 	 */
 	public int size() {
 		return resultItems.size();
+	}
+
+	/**
+	 * @return the query that returned this result
+	 */
+	public Query getQuery() {
+		return query;
+	}
+
+	/**
+	 * @param query
+	 *            the query object of this result
+	 */
+	public void setQuery(Query query) {
+		this.query = query;
+	}
+
+	/**
+	 * @return the sessionId
+	 */
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	/**
+	 * @param sessionId
+	 *            the sessionId to set
+	 */
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 
 }

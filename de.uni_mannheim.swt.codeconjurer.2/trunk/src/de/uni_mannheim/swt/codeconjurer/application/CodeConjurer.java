@@ -30,7 +30,6 @@ import de.uni_mannheim.swt.codeconjurer.domain.listener.SearchEventListener;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Query;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
 import de.uni_mannheim.swt.codeconjurer.domain.search.StandardSearch;
-import de.uni_mannheim.swt.codeconjurer.domain.search.TestDrivenSearch;
 import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
@@ -133,8 +132,11 @@ public class CodeConjurer {
 		String querytype = query.getType();
 		if (querytype.equals("tds")) {
 			if (!byAgent) {
-				search = new TestDrivenSearch(editor, "Test-Driven Search for "
-						+ editor.getTitle(), query);
+				// search = new TestDrivenSearch(editor,
+				// "Test-Driven Search for "
+				// + editor.getTitle(), query);
+				search = new StandardSearch(editor, "Test-Driven Search for "
+						+ editor.getTitle(), query, Search.TEST_DRIVEN_SEARCH);
 				logger.debug("Test-Driven Search created");
 			} else {
 				// TODO: Implement a background-agent that reacts to JUnit
@@ -146,7 +148,7 @@ public class CodeConjurer {
 		} else {
 			search = new StandardSearch(editor,
 					"Search for reusable assets for " + editor.getTitle(),
-					query);
+					query, Search.STANDARD_SEARCH);
 			logger.debug("Standard Search created");
 		}
 		// Delegate the search event listeners to the search

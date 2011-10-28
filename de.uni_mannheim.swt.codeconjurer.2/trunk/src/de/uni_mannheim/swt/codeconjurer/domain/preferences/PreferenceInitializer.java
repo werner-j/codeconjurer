@@ -30,14 +30,18 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 	 */
 	public void initializeDefaultPreferences() {
 		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		store.setDefault(PreferenceConstants.P_LAUNCH, 0);
+		store.setDefault(PreferenceConstants.P_FIRST_LAUNCH, true);
 		store.setDefault(PreferenceConstants.P_SERVER,
 				"http://www.merobase.com");
 		store.setDefault(PreferenceConstants.P_USERNAME, "");
 		store.setDefault(PreferenceConstants.P_PASSWORD, "");
-		store.setDefault(PreferenceConstants.P_RESULTS, 10);
-		store.setDefault(PreferenceConstants.P_FORMAT, true);
+		store.setDefault(PreferenceConstants.P_RESULTS, 20);
 		store.setDefault(PreferenceConstants.P_OVERWRITE_ON_INSERT, true);
+		store.setDefault(PreferenceConstants.P_ORGANIZE_IMPORTS, true);
+		store.setDefault(PreferenceConstants.P_FORMAT_ON_INSERT, true);
 		store.setDefault(PreferenceConstants.P_UDC, true);
+		store.setDefault(PreferenceConstants.P_CRASH_REPORTING, true);
 	}
 
 }

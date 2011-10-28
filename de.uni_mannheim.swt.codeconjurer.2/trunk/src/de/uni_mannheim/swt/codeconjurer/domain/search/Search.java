@@ -13,6 +13,7 @@
 package de.uni_mannheim.swt.codeconjurer.domain.search;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.jobs.Job;
@@ -31,10 +32,14 @@ public abstract class Search extends Job {
 
 	protected Logger logger = Logger.getLogger(Search.class);
 
-	public final static int INTERFACE = 1;
-	public final static int TEST = 2;
+	public final static int STANDARD_SEARCH = 1;
+	public final static int TEST_DRIVEN_SEARCH = 2;
+
+	protected int kind;
 
 	protected ArrayList<SearchEventListener> listeners = new ArrayList<SearchEventListener>();
+
+	protected HashMap<String, String> properties = new HashMap<String, String>();
 
 	protected Query query;
 	protected Result result;
@@ -43,18 +48,17 @@ public abstract class Search extends Job {
 
 	private IEditorPart editor;
 
-	protected int type = 0;
-
 	/**
 	 * Creates a Search
 	 * 
 	 * @param name
 	 */
-	public Search(IEditorPart editor, String name, Query query) {
+	public Search(IEditorPart editor, String name, Query query, int kind) {
 		super(name);
 		this.query = query;
 		this.editor = editor;
 		this.result = new Result();
+		this.kind = kind;
 	}
 
 	/**
@@ -66,18 +70,36 @@ public abstract class Search extends Job {
 		return result;
 	}
 
+	/**
+	 * The editor this search is associated with
+	 * 
+	 * @return
+	 */
 	public IEditorPart getEditor() {
 		return editor;
 	}
 
+	/**
+	 * Add a listener to a search
+	 * 
+	 * @param listener
+	 */
 	public void addSearchEventListener(SearchEventListener listener) {
 		this.listeners.add(listener);
 	}
 
-	public int getType() {
-		return type;
+	/**
+	 * Returns the kind of this search
+	 */
+	public int getKind() {
+		return kind;
 	}
 
+	/**
+	 * Notify listeners about a SearchEvent
+	 * 
+	 * @param event
+	 */
 	protected void notifySearchEventListeners(SearchEvent event) {
 		logger.debug("Notify SearchEventListeners: " + event.toString());
 		for (SearchEventListener listener : listeners) {
@@ -97,6 +119,43 @@ public abstract class Search extends Job {
 	 */
 	public boolean isFinished() {
 		return finished;
+	}
+
+	/**
+	 * Set a property of this search
+	 * 
+	 * @param name
+	 * @param value
+	 */
+	public void setProperty(String name, String value) {
+		properties.put(name, value);
+	}
+
+	/**
+	 * Returns a property of the search as string object
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public String getPropertyAsString(String name) {
+		return properties.get(name);
+	}
+
+	/**
+	 * Returns the value of the given property as an integer value
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public int getPropertyAsInteger(String name) {
+		return Integer.parseInt(properties.get(name));
+	}
+
+	@Override
+	protected void canceling() {
+		super.canceling();
+		logger.debug("Cancelling Search Job");
+		Thread.currentThread().interrupt();
 	}
 
 }

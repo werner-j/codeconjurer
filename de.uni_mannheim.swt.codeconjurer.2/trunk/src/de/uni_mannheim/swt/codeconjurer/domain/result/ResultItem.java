@@ -13,6 +13,7 @@
 package de.uni_mannheim.swt.codeconjurer.domain.result;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.AST;
@@ -26,6 +27,8 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import com.merotronics.merobase.ws.action.ResultBean;
 
 import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
+import de.uni_mannheim.swt.codeconjurer.domain.search.Query;
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 
 /**
  * @author Werner Janjic
@@ -77,7 +80,18 @@ public class ResultItem {
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setSource(source.toCharArray());
-		resultCompilationUnit = (CompilationUnit) parser.createAST(null);
+		try {
+			resultCompilationUnit = (CompilationUnit) parser.createAST(null);
+		} catch (Throwable e) {
+			CrashReporter.reportException(e);
+			logger.debug("Could not parse source");
+		}
+		String sourceInCpu = "";
+		List<?> types = resultCompilationUnit.types();
+		sourceInCpu += types.get(0);
+		logger.debug("Source of type root for "
+				+ properties.get(ResultProperty.SHORT_URL) + ": " + sourceInCpu);
+		logger.debug("Source set");
 	}
 
 	/**
@@ -95,9 +109,13 @@ public class ResultItem {
 	 * @return
 	 */
 	public String getSource() {
-		return ("// Sourcecode found by merobase.com\r\n" + "// "
-				+ properties.get(ResultProperty.SHORT_URL) + "\r\n" + resultCompilationUnit
-					.getJavaElement());
+		if (resultCompilationUnit != null) {
+			return ("// Sourcecode found by merobase.com\r\n" + "// "
+					+ properties.get(ResultProperty.SHORT_URL) + "\r\n" + resultCompilationUnit
+						.getJavaElement());
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -134,6 +152,10 @@ public class ResultItem {
 						properties.get(ResultProperty.EXECUTABILITY));
 				typeDec.setProperty(ResultProperty.LICENSE.name(),
 						properties.get(ResultProperty.LICENSE));
+				typeDec.setProperty(ResultProperty.QUERY.name(),
+						properties.get(ResultProperty.QUERY));
+				typeDec.setProperty(ResultProperty.SEARCH_ID.name(),
+						properties.get(ResultProperty.SEARCH_ID));
 			} else {
 				logger.debug("No primary type for "
 						+ properties.get(ResultProperty.SHORT_URL));
@@ -170,4 +192,38 @@ public class ResultItem {
 		}
 		return null;
 	}
+
+	/**
+	 * @return the query that returned this result
+	 */
+	public String getQuery() {
+		return (String) properties.get(ResultProperty.QUERY);
+	}
+
+	/**
+	 * @param query
+	 *            the query that returned this result
+	 */
+	public void setQuery(Query query) {
+		if (query != null)
+			properties.put(ResultProperty.QUERY, query.getQuery());
+	}
+
+	/**
+	 * Returns the Search Session ID of this result
+	 * 
+	 * @return
+	 */
+	public String getSearchId() {
+		return (String) (String) properties.get(ResultProperty.SEARCH_ID);
+	}
+
+	/**
+	 * @param id
+	 *            the session id of the search
+	 */
+	public void setSearchId(String id) {
+		properties.put(ResultProperty.SEARCH_ID, id);
+	}
+
 }

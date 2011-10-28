@@ -17,6 +17,10 @@ package de.uni_mannheim.swt.codeconjurer.domain.preferences;
  */
 public class PreferenceConstants {
 
+	public static final String P_LAUNCH = "numberOfLaunches";
+
+	public static final String P_FIRST_LAUNCH = "firstLaunchOfApp";
+
 	public static final String P_SERVER = "merobaseServer";
 
 	public static final String P_USERNAME = "username";
@@ -25,9 +29,14 @@ public class PreferenceConstants {
 
 	public static final String P_RESULTS = "numberOfResultsToRetrieve";
 
-	public static final String P_FORMAT = "formatSourceOnInsert";
-
 	public static final String P_OVERWRITE_ON_INSERT = "overwriteOnInsert";
 
+	public static final String P_ORGANIZE_IMPORTS = "organizeImports";
+
+	public static final String P_FORMAT_ON_INSERT = "formatOnInsert";
+
 	public static final String P_UDC = "udcFeature";
+
+	public static final String P_CRASH_REPORTING = "crashReporting";
+
 }
