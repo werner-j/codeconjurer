@@ -90,6 +90,18 @@
             id="de.uni_mannheim.swt.codeconjurer.preferences.CodeConjurerPreferences"
             name="%page.name">
       </page>
+      <page
+            category="de.uni_mannheim.swt.codeconjurer.preferences.CodeConjurerPreferences"
+            class="de.uni_mannheim.swt.codeconjurer.ui.preferences.CodeManipulationPreferences"
+            id="de.uni_mannheim.swt.codeconjurer.preferences.CodeManipulationPreferences"
+            name="%code_manipulation.name">
+      </page>
+      <page
+            category="de.uni_mannheim.swt.codeconjurer.preferences.CodeConjurerPreferences"
+            class="de.uni_mannheim.swt.codeconjurer.ui.preferences.PrivacyPreferences"
+            id="de.uni_mannheim.swt.codeconjurer.preferences.PrivacyPreferences"
+            name="%privacy_settings.name">
+      </page>
    </extension>
    <extension
          id="de.uni_mannheim.swt.codeconjurer.preferences.Preferences"
