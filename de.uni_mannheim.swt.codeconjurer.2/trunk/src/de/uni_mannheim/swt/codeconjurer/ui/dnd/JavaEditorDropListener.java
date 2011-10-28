@@ -13,6 +13,7 @@
 package de.uni_mannheim.swt.codeconjurer.ui.dnd;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -26,9 +27,12 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jdt.ui.actions.FormatAllAction;
+import org.eclipse.jdt.ui.actions.OrganizeImportsAction;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.swt.dnd.DropTargetEvent;
@@ -40,6 +44,7 @@ import de.uni_mannheim.swt.codeconjurer.Activator;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
+import de.uni_mannheim.swt.codeconjurer.techsrv.UsageDataSender;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 /**
@@ -133,6 +138,7 @@ public class JavaEditorDropListener implements DropTargetListener {
 					.getEditorInputJavaElement(PluginUI.getActiveEditor()
 							.getEditorInput());
 
+			// Insert selection(s) into editor
 			for (BodyDeclaration decl : declarations) {
 				try {
 					// Insert a class into the editor
@@ -150,10 +156,35 @@ public class JavaEditorDropListener implements DropTargetListener {
 					CrashReporter.reportException(e);
 					logger.debug("Could not modify editor content: "
 							+ e.getLocalizedMessage());
-					e.printStackTrace();
 				}
-				logger.debug("Dropping finished");
 			}
+
+			// If the user wishes, we can organize imports and format the code
+			try {
+				boolean doOrganize = Activator.getDefault()
+						.getPreferenceStore()
+						.getBoolean(PreferenceConstants.P_ORGANIZE_IMPORTS);
+				boolean doFormat = Activator.getDefault().getPreferenceStore()
+						.getBoolean(PreferenceConstants.P_FORMAT_ON_INSERT);
+
+				if (doOrganize) {
+					OrganizeImportsAction organize = new OrganizeImportsAction(
+							PluginUI.getActiveEditor().getEditorSite());
+					organize.run(icu);
+				}
+
+				if (doFormat) {
+					FormatAllAction format = new FormatAllAction(PluginUI
+							.getActiveEditor().getEditorSite());
+					format.runOnMultiple(new ICompilationUnit[] { icu });
+				}
+			} catch (Exception e) {
+				CrashReporter.reportException(e);
+				logger.debug("Could not beautify editor content: "
+						+ e.getLocalizedMessage());
+			}
+
+			logger.debug("Dropping finished");
 
 		}
 	}
@@ -182,6 +213,19 @@ public class JavaEditorDropListener implements DropTargetListener {
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setSource(cpu);
 		CompilationUnit astRoot = (CompilationUnit) parser.createAST(null);
+
+		StringBuffer signature = new StringBuffer();
+		signature.append(methodDeclaration.getName().getFullyQualifiedName()
+				+ " ( ");
+		for (Object param : methodDeclaration.parameters()) {
+			if (param instanceof SingleVariableDeclaration) {
+				signature.append(((SingleVariableDeclaration) param).getType()
+						.toString() + " ");
+			}
+		}
+		signature.append(") : " + methodDeclaration.getReturnType2());
+
+		methodDeclaration.setProperty("Signature", signature.toString());
 
 		// creation of ASTRewrite
 		astRoot.recordModifications();
@@ -227,82 +271,94 @@ public class JavaEditorDropListener implements DropTargetListener {
 	private void insertDeclaration(ICompilationUnit target,
 			TypeDeclaration typeDeclaration) throws JavaModelException,
 			MalformedTreeException, BadLocationException {
-		ICompilationUnit icu = target.getWorkingCopy(null);
+		try {
+			ICompilationUnit icu = target.getWorkingCopy(null);
 
-		// creation of DOM/AST from an ICompilationUnit
-		ASTParser parser = ASTParser.newParser(AST.JLS3);
-		parser.setSource(icu);
-		CompilationUnit astRoot = (CompilationUnit) parser.createAST(null);
+			// creation of DOM/AST from an ICompilationUnit
+			ASTParser parser = ASTParser.newParser(AST.JLS3);
+			parser.setSource(icu);
+			CompilationUnit astRoot = (CompilationUnit) parser.createAST(null);
 
-		TypeDeclaration dropTypeDec = (TypeDeclaration) ASTNode.copySubtree(
-				astRoot.getAST(), typeDeclaration);
+			StringBuffer signature = new StringBuffer();
+			signature.append(typeDeclaration.getName().getFullyQualifiedName());
 
-		// creation of ASTRewrite
-		AST ast = astRoot.getAST();
-		ASTRewrite rewrite = ASTRewrite.create(ast);
+			typeDeclaration.setProperty("Signature", signature.toString());
 
-		// description of the change
-		for (Object typeObj : astRoot.types()) {
-			if (typeObj instanceof TypeDeclaration) {
-				TypeDeclaration typeDec = (TypeDeclaration) typeObj;
-				if (typeDec.getName().toString()
-						.equals(dropTypeDec.getName().toString())) {
-					logger.debug("Replace existing type declaration");
-					if (Activator
-							.getDefault()
-							.getPreferenceStore()
-							.getString(
-									PreferenceConstants.P_OVERWRITE_ON_INSERT)
-							.equals("true")) {
-						rewrite.remove(typeDec, null);
-					}
-				}
-			}
-		}
+			TypeDeclaration dropTypeDec = (TypeDeclaration) ASTNode
+					.copySubtree(astRoot.getAST(), typeDeclaration);
 
-		ASTNode a = ASTNode.copySubtree(ast, dropTypeDec);
-		@SuppressWarnings("unchecked")
-		List<TypeDeclaration> types = astRoot.types();
-		ArrayList<TypeDeclaration> newTypes = new ArrayList<TypeDeclaration>();
-		newTypes.add((TypeDeclaration) a);
-		if (types.addAll(newTypes)) {
-			if (!target.getElementName().equals(
-					dropTypeDec.getName().toString() + ".java")) {
-				List<?> modifiers = dropTypeDec.modifiers();
-				for (Object mod : modifiers) {
-					if (mod instanceof Modifier) {
-						Modifier modifier = (Modifier) mod;
-						if (modifier.getKeyword().toString().equals("public")) {
-							dropTypeDec.modifiers().remove(modifier);
-							break;
+			// creation of ASTRewrite
+			AST ast = astRoot.getAST();
+			ASTRewrite rewrite = ASTRewrite.create(ast);
+
+			// description of the change
+			for (Object typeObj : astRoot.types()) {
+				if (typeObj instanceof TypeDeclaration) {
+					TypeDeclaration typeDec = (TypeDeclaration) typeObj;
+					if (typeDec.getName().toString()
+							.equals(dropTypeDec.getName().toString())) {
+						logger.debug("Replace existing type declaration");
+						if (Activator
+								.getDefault()
+								.getPreferenceStore()
+								.getString(
+										PreferenceConstants.P_OVERWRITE_ON_INSERT)
+								.equals("true")) {
+							rewrite.remove(typeDec, null);
 						}
 					}
 				}
 			}
-			String preambule = createPreambule(typeDeclaration) + "\r\n";
-			icu.createType(preambule + dropTypeDec.toString(), null, true, null);
-			logger.debug("New type added successfully");
+
+			ASTNode a = ASTNode.copySubtree(ast, dropTypeDec);
+			@SuppressWarnings("unchecked")
+			List<TypeDeclaration> types = astRoot.types();
+			ArrayList<TypeDeclaration> newTypes = new ArrayList<TypeDeclaration>();
+			newTypes.add((TypeDeclaration) a);
+			if (types.addAll(newTypes)) {
+				if (!target.getElementName().equals(
+						dropTypeDec.getName().toString() + ".java")) {
+					List<?> modifiers = dropTypeDec.modifiers();
+					for (Object mod : modifiers) {
+						if (mod instanceof Modifier) {
+							Modifier modifier = (Modifier) mod;
+							if (modifier.getKeyword().toString()
+									.equals("public")) {
+								dropTypeDec.modifiers().remove(modifier);
+								break;
+							}
+						}
+					}
+				}
+				String preambule = createPreambule(typeDeclaration) + "\r\n";
+				icu.createType(preambule + dropTypeDec.toString(), null, true,
+						null);
+				logger.debug("New type added successfully");
+			}
+
+			String source = icu.getSource();
+			Document document = new Document(source);
+
+			// computation of the text edits
+			TextEdit edits = rewrite.rewriteAST(document, icu.getJavaProject()
+					.getOptions(true));
+
+			// computation of the new source code
+			if (edits != null) {
+				edits.apply(document);
+			}
+
+			String newSource = document.get();
+
+			// update of the compilation unit
+			icu.getBuffer().setContents(newSource);
+			icu.reconcile(ICompilationUnit.NO_AST, false, null, null);
+			icu.commitWorkingCopy(false, null);
+			icu.discardWorkingCopy();
+		} catch (Exception e) {
+			CrashReporter.reportException(e);
+			logger.debug("Could not insert result: " + e.toString());
 		}
-
-		String source = icu.getSource();
-		Document document = new Document(source);
-
-		// computation of the text edits
-		TextEdit edits = rewrite.rewriteAST(document, icu.getJavaProject()
-				.getOptions(true));
-
-		// computation of the new source code
-		if (edits != null) {
-			edits.apply(document);
-		}
-
-		String newSource = document.get();
-
-		// update of the compilation unit
-		icu.getBuffer().setContents(newSource);
-		icu.reconcile(ICompilationUnit.NO_AST, false, null, null);
-		icu.commitWorkingCopy(false, null);
-		icu.discardWorkingCopy();
 	}
 
 	/**
@@ -321,7 +377,19 @@ public class JavaEditorDropListener implements DropTargetListener {
 		}
 		content += "// Origin: "
 				+ bodyDeclaration.getProperty(ResultProperty.SHORT_URL.name());
+
+		// Report reuse of artifact
+		HashMap<String, String> data = new HashMap<String, String>();
+		data.put("URL", (String) bodyDeclaration
+				.getProperty(ResultProperty.SHORT_URL.name()));
+		data.put("Signature", (String) bodyDeclaration.getProperty("Signature"));
+		data.put("Kind", bodyDeclaration.toString());
+		data.put("Query", (String) bodyDeclaration
+				.getProperty(ResultProperty.QUERY.name()));
+		data.put("Session_ID", (String) bodyDeclaration
+				.getProperty(ResultProperty.SEARCH_ID.name()));
+		UsageDataSender.sendInformation("reuse", data);
+
 		return content;
 	}
-
 }
