@@ -12,18 +12,20 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.view.providers;
 
-import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ITableColorProvider;
+import org.eclipse.jface.viewers.ITableFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
@@ -36,9 +38,9 @@ import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
  * 
  */
 public class ResultLabelProvider extends LabelProvider implements
-		ITableLabelProvider, ITableColorProvider {
+		ITableLabelProvider, ITableColorProvider, ITableFontProvider {
 
-	private Logger logger = Logger.getLogger(ResultLabelProvider.class);
+	// private Logger logger = Logger.getLogger(ResultLabelProvider.class);
 
 	@Override
 	public Image getColumnImage(Object item, int columnIndex) {
@@ -78,13 +80,18 @@ public class ResultLabelProvider extends LabelProvider implements
 					return license;
 				}
 			}
+			if (columnIndex == 2) {
+				if (((String) element.getProperty(ResultProperty.EXECUTABILITY
+						.name())).equals(Executability.TESTED.value())) {
+					return "TESTED";
+				}
+			}
 		}
 		if (element.getNodeType() == ASTNode.METHOD_DECLARATION
 				&& columnIndex == 0) {
 			return ((MethodDeclaration) element).getName()
 					.getFullyQualifiedName();
 		}
-		logger.debug("No text");
 		return null;
 	}
 
@@ -118,6 +125,17 @@ public class ResultLabelProvider extends LabelProvider implements
 			}
 		}
 		return color;
+	}
+
+	@Override
+	public Font getFont(Object item, int columnIndex) {
+		BodyDeclaration element = (BodyDeclaration) item;
+		if (element.getNodeType() == ASTNode.TYPE_DECLARATION
+				&& columnIndex == 0) {
+			return JFaceResources.getFontRegistry().getBold(
+					JFaceResources.DEFAULT_FONT);
+		}
+		return null;
 	}
 
 }

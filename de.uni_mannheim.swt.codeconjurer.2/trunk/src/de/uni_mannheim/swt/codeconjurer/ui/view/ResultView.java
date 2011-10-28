@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -38,6 +39,7 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import de.uni_mannheim.swt.codeconjurer.Activator;
@@ -79,6 +81,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	 * Create View for results.
 	 */
 	public void createPartControl(Composite parent) {
+		askUserForUDC();
+
 		this.showBusy(true);
 		PluginUI.addUIListener(this);
 		createToolbarActions();
@@ -137,6 +141,34 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 		onEvent(UIEvent.CREATED);
 		this.showBusy(false);
+	}
+
+	/**
+	 * This is used to greet the user at first launch
+	 */
+	private void askUserForUDC() {
+		boolean firstlaunch = Activator.getDefault().getPreferenceStore()
+				.getBoolean(PreferenceConstants.P_FIRST_LAUNCH);
+		// At first launch ask for UDC and crash reporting
+		if (firstlaunch) {
+			Activator.getDefault().getPreferenceStore()
+					.setValue(PreferenceConstants.P_FIRST_LAUNCH, false);
+			PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+				public void run() {
+					MessageDialog
+							.openInformation(
+									PlatformUI.getWorkbench()
+											.getActiveWorkbenchWindow()
+											.getShell(),
+									"Code Conjurer First Start",
+									"Please set a username and password in Eclipse->Preferences->Code Conjurer. \r\n\r\n"
+											+ "Code Conjurer collects crash and usage data for "
+											+ "the developers to improve its "
+											+ "reliability and results. You can turn off that "
+											+ "feature in the preferences dialog.");
+				}
+			});
+		}
 	}
 
 	/**
@@ -199,7 +231,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		if (event != SearchEvent.SOURCE_ADDED
 				&& !PluginUI.getWindow().getWorkbench().getDisplay()
 						.isDisposed()) {
-			logger.debug("Refresh ResultTres");
+			logger.debug("Refresh ResultTree");
 			PluginUI.getWindow().getWorkbench().getDisplay()
 					.asyncExec(new Runnable() {
 						@Override
@@ -207,8 +239,14 @@ public class ResultView extends ViewPart implements SearchEventListener,
 							resultTree.refresh();
 							TreeItem selection = resultTree
 									.getSelectedElement();
-							if (selection != null)
-								preview.setCode(selection.getData().toString());
+							if (selection != null) {
+								String code = selection.getData().toString();
+								if (code.equals("")) {
+									logger.debug("No code available");
+								} else {
+									preview.setCode(code);
+								}
+							}
 							// Indicate that something has happened and add a
 							// star to the view's title
 							String name = view.getPartName();
@@ -219,17 +257,33 @@ public class ResultView extends ViewPart implements SearchEventListener,
 							}
 						}
 					});
-			logger.debug("Update Statusline");
-			if (event == SearchEvent.SERVERERROR) {
-				updateStatus("A server error occured during the search. Check your settings and contact the administrator if this problem persists.");
-			} else if (event == SearchEvent.INVALID_USER) {
-				updateStatus("Invalid username / password. Please check your preference settings.");
-			} else if (event == SearchEvent.INVALID_USER) {
-				updateStatus("Search cancelled. Close connection...");
-			} else {
-				updateStatus();
-			}
 		}
+		if (event == SearchEvent.SOURCE_ADDED) {
+			logger.debug("Refresh ResultTree");
+			PluginUI.getWindow().getWorkbench().getDisplay()
+					.asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							resultTree.refresh();
+							TreeItem selection = resultTree
+									.getSelectedElement();
+							if (selection != null)
+								preview.setCode(selection.getData().toString());
+						}
+					});
+		}
+
+		logger.debug("Update Statusline");
+		if (event == SearchEvent.SERVERERROR) {
+			updateStatus("A server error occured during the search. Check your settings and contact the administrator if this problem persists.");
+		} else if (event == SearchEvent.INVALID_USER) {
+			updateStatus("Invalid username / password. Please check your preference settings.");
+		} else if (event == SearchEvent.INVALID_USER) {
+			updateStatus("Search cancelled. Close connection...");
+		} else {
+			updateStatus();
+		}
+
 	}
 
 	/**
@@ -423,8 +477,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 						if (search != null) {
 							Result result = null;
 							int results = 0;
-							switch (search.getType()) {
-							case Search.INTERFACE:
+							switch (search.getKind()) {
+							case Search.STANDARD_SEARCH:
 								result = search.getSearchResult();
 								results = result.getResultItems().length;
 								if (results > 0) {
@@ -436,7 +490,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 								}
 								break;
 
-							case Search.TEST:
+							case Search.TEST_DRIVEN_SEARCH:
 								result = search.getSearchResult();
 								int passes = result
 										.getNumberOfSuccessfulTests();

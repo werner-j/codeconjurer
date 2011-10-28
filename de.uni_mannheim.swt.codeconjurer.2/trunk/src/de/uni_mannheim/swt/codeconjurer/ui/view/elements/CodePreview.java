@@ -12,6 +12,7 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.view.elements;
 
+import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.Composite;
@@ -25,6 +26,7 @@ import de.java2html.Java2Html;
 public class CodePreview {
 
 	private Browser codeBrowser;
+	private Logger logger = Logger.getLogger(CodePreview.class);
 
 	public CodePreview(Composite parent, int style) {
 		codeBrowser = new Browser(parent, style);
@@ -44,12 +46,14 @@ public class CodePreview {
 		codeBrowser.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				if (code != null)
+				String actualContent = codeBrowser.getText();
+				if (code != null
+						&& !Java2Html.convertToHtml(code).equals(actualContent)) {
 					codeBrowser.setText(Java2Html.convertToHtml(code), false);
-				else
-					codeBrowser.setText(Java2Html
-							.convertToHtml("// Code could not be displayed."),
-							false);
+					logger.debug("Preview of: " + code);
+					System.out.println();
+				}
+				codeBrowser.update();
 			}
 		});
 	}

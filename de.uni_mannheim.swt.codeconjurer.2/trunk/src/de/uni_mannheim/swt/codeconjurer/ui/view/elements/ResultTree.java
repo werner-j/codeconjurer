@@ -120,6 +120,7 @@ public class ResultTree {
 			@Override
 			public void run() {
 				if (treeViewer != null) {
+					logger.debug("Update TreeViewer");
 					Search oldInput = (Search) treeViewer.getInput();
 					Search newInput = CodeConjurer.getInstance()
 							.getActiveEditorSearch();
@@ -130,6 +131,8 @@ public class ResultTree {
 								.getExpandedElements();
 						if (newInput != oldInput) {
 							treeViewer.setInput(newInput);
+						} else {
+							newInput = null;
 						}
 						treeViewer.refresh();
 						// If there is no input we are finished.
@@ -148,13 +151,16 @@ public class ResultTree {
 								if (!disposed) {
 									treeViewer.getTree()
 											.setSelection(selection);
+
 								}
 							}
 
 							if (expandedElements != null
-									&& expandedElements.length > 0)
+									&& expandedElements.length > 0) {
+								logger.debug("Expand elements again");
 								treeViewer
 										.setExpandedElements(expandedElements);
+							}
 						} catch (Exception e) {
 							CrashReporter.reportException(e);
 							logger.debug("Exception setting tree status: "

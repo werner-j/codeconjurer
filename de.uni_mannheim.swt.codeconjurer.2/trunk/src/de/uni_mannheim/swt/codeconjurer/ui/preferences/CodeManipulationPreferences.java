@@ -12,8 +12,8 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.preferences;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -31,13 +31,13 @@ import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
  * preferences can be accessed directly via the preference store.
  */
 
-public class CodeConjurerPreferences extends FieldEditorPreferencePage
+public class CodeManipulationPreferences extends FieldEditorPreferencePage
 		implements IWorkbenchPreferencePage {
 
-	public CodeConjurerPreferences() {
+	public CodeManipulationPreferences() {
 		super(GRID);
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("Code Conjurer Preferences");
+		setDescription("Code Manipulation Preferences");
 	}
 
 	/**
@@ -46,18 +46,20 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 	 * editor knows how to save and restore itself.
 	 */
 	public void createFieldEditors() {
-		addField(new StringFieldEditor(PreferenceConstants.P_SERVER,
-				"&Servername:", getFieldEditorParent()));
-		addField(new StringFieldEditor(PreferenceConstants.P_USERNAME,
-				"&Username:", getFieldEditorParent()));
-		PasswordFieldEditor pwEditor = new PasswordFieldEditor(
-				PreferenceConstants.P_PASSWORD, "&Password:",
-				getFieldEditorParent());
-		addField(pwEditor);
 		addField(new LabelFieldEditor("", getFieldEditorParent()));
-		// Choose between 5 and 100 results
-		addField(new SliderFieldEditor(PreferenceConstants.P_RESULTS,
-				"&Results per search:", 5, 105, 5, getFieldEditorParent()));
+		addField(new LabelFieldEditor(
+				"Code manipulation options after drag and drop operations",
+				getFieldEditorParent()));
+		addField(new BooleanFieldEditor(
+				PreferenceConstants.P_OVERWRITE_ON_INSERT,
+				"Overwrite existing code on insert",
+				BooleanFieldEditor.DEFAULT, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PreferenceConstants.P_ORGANIZE_IMPORTS,
+				"Auto-Organize imports after code insertion",
+				BooleanFieldEditor.DEFAULT, getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PreferenceConstants.P_FORMAT_ON_INSERT,
+				"Auto-Format compilation unit after code insertion",
+				BooleanFieldEditor.DEFAULT, getFieldEditorParent()));
 	}
 
 	/*

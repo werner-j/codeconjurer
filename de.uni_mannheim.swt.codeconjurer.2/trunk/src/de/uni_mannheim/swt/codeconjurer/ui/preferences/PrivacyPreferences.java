@@ -12,8 +12,8 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.preferences;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -31,13 +31,13 @@ import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
  * preferences can be accessed directly via the preference store.
  */
 
-public class CodeConjurerPreferences extends FieldEditorPreferencePage
-		implements IWorkbenchPreferencePage {
+public class PrivacyPreferences extends FieldEditorPreferencePage implements
+		IWorkbenchPreferencePage {
 
-	public CodeConjurerPreferences() {
+	public PrivacyPreferences() {
 		super(GRID);
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("Code Conjurer Preferences");
+		setDescription("Privacy Settings");
 	}
 
 	/**
@@ -46,18 +46,18 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 	 * editor knows how to save and restore itself.
 	 */
 	public void createFieldEditors() {
-		addField(new StringFieldEditor(PreferenceConstants.P_SERVER,
-				"&Servername:", getFieldEditorParent()));
-		addField(new StringFieldEditor(PreferenceConstants.P_USERNAME,
-				"&Username:", getFieldEditorParent()));
-		PasswordFieldEditor pwEditor = new PasswordFieldEditor(
-				PreferenceConstants.P_PASSWORD, "&Password:",
-				getFieldEditorParent());
-		addField(pwEditor);
 		addField(new LabelFieldEditor("", getFieldEditorParent()));
-		// Choose between 5 and 100 results
-		addField(new SliderFieldEditor(PreferenceConstants.P_RESULTS,
-				"&Results per search:", 5, 105, 5, getFieldEditorParent()));
+		addField(new LabelFieldEditor(
+				"To help us improve Code Conjurer, the plug-in can send anonymous\r\n"
+						+ "usage data and crash reports to the developers. If you agree that\r\n"
+						+ "Code Conjurer sends this data, please leave the following options checked.",
+				getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PreferenceConstants.P_UDC,
+				"Anonymous usage data collection", BooleanFieldEditor.DEFAULT,
+				getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PreferenceConstants.P_CRASH_REPORTING,
+				"Send plug-in crash information to developers",
+				BooleanFieldEditor.DEFAULT, getFieldEditorParent()));
 	}
 
 	/*
