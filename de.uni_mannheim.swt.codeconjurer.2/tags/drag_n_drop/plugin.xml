@@ -110,5 +110,12 @@
             class="de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceInitializer">
       </initializer>
    </extension>
+   <extension
+         point="org.eclipse.ui.dropActions">
+      <action
+            class="de.uni_mannheim.swt.codeconjurer.ui.dnd.PluginDropActionDelegate"
+            id="de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction">
+      </action>
+   </extension>
 
 </plugin>
