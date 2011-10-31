@@ -12,9 +12,6 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.view;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
@@ -25,18 +22,12 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetListener;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.PlatformUI;
@@ -49,9 +40,6 @@ import de.uni_mannheim.swt.codeconjurer.domain.listener.SearchEventListener;
 import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.Result;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
-import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
-import de.uni_mannheim.swt.codeconjurer.ui.dnd.BodyDeclarationTransfer;
-import de.uni_mannheim.swt.codeconjurer.ui.dnd.JavaEditorDropListener;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIListener;
 import de.uni_mannheim.swt.codeconjurer.ui.view.elements.CodePreview;
@@ -326,39 +314,40 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	public void partActivated(final IWorkbenchPartReference partRef) {
 		String id = partRef.getId();
 		if (id.equals("org.eclipse.jdt.ui.CompilationUnitEditor")) {
-			IEditorPart editor = PluginUI.getActiveEditor();
-			Control ctrl = (Control) editor.getAdapter(Control.class);
-			DropTarget dropTarget = (DropTarget) ctrl
-					.getData(DND.DROP_TARGET_KEY);
-			if (dropTarget != null) {
-				try {
-					// Add drop listener to editor
-					ArrayList<DropTargetListener> dropListeners = new ArrayList<DropTargetListener>(
-							Arrays.asList(dropTarget.getDropListeners()));
-					if (!dropListeners.contains(JavaEditorDropListener
-							.getInstance())) {
-						logger.debug("Add drop listener to "
-								+ dropTarget.toString());
-						dropTarget.addDropListener(JavaEditorDropListener
-								.getInstance());
-					}
-
-					// Add new transfer type to editor
-					ArrayList<Transfer> transfers = new ArrayList<Transfer>(
-							Arrays.asList(dropTarget.getTransfer()));
-					if (!transfers.contains(BodyDeclarationTransfer
-							.getInstance())) {
-						transfers.add(BodyDeclarationTransfer.getInstance());
-						dropTarget.setTransfer(transfers
-								.toArray(new Transfer[transfers.size()]));
-					}
-				} catch (Exception e) {
-					CrashReporter.reportException(e);
-					logger.debug("Could not register drop service: "
-							+ e.getMessage());
-					e.printStackTrace();
-				}
-			}
+			// IEditorPart editor = PluginUI.getActiveEditor();
+			// Control ctrl = (Control) editor.getAdapter(Control.class);
+			// DropTarget dropTarget = (DropTarget) ctrl
+			// .getData(DND.DROP_TARGET_KEY);
+			// if (dropTarget != null) {
+			// try {
+			// // Add drop listener to editor
+			// ArrayList<DropTargetListener> dropListeners = new
+			// ArrayList<DropTargetListener>(
+			// Arrays.asList(dropTarget.getDropListeners()));
+			// if (!dropListeners.contains(JavaEditorDropListener
+			// .getInstance())) {
+			// logger.debug("Add drop listener to "
+			// + dropTarget.toString());
+			// dropTarget.addDropListener(JavaEditorDropListener
+			// .getInstance());
+			// }
+			//
+			// // Add new transfer type to editor
+			// ArrayList<Transfer> transfers = new ArrayList<Transfer>(
+			// Arrays.asList(dropTarget.getTransfer()));
+			// if (!transfers.contains(BodyDeclarationTransfer
+			// .getInstance())) {
+			// transfers.add(BodyDeclarationTransfer.getInstance());
+			// dropTarget.setTransfer(transfers
+			// .toArray(new Transfer[transfers.size()]));
+			// }
+			// } catch (Exception e) {
+			// CrashReporter.reportException(e);
+			// logger.debug("Could not register drop service: "
+			// + e.getMessage());
+			// e.printStackTrace();
+			// }
+			// }
 			updateStatus();
 			resultTree.refresh();
 			TreeItem selection = resultTree.getSelectedElement();

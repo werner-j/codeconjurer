@@ -17,6 +17,7 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -25,13 +26,13 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.part.PluginTransfer;
 
 import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
 import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.controller.ResultDoubleClickListener;
-import de.uni_mannheim.swt.codeconjurer.ui.dnd.BodyDeclarationTransfer;
-import de.uni_mannheim.swt.codeconjurer.ui.dnd.SourceDragListener;
+import de.uni_mannheim.swt.codeconjurer.ui.dnd.ResultTreeDragListener;
 import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 import de.uni_mannheim.swt.codeconjurer.ui.view.providers.ResultContentProvider;
 import de.uni_mannheim.swt.codeconjurer.ui.view.providers.ResultLabelProvider;
@@ -93,10 +94,10 @@ public class ResultTree {
 		treeViewer.addSelectionChangedListener(listener);
 
 		// Enable Drag & Drop Support
-		int ops = DND.DROP_COPY;
-		Transfer[] transfers = new Transfer[] { BodyDeclarationTransfer
-				.getInstance() };
-		treeViewer.addDragSupport(ops, transfers, new SourceDragListener(
+		int ops = DND.DROP_COPY | DND.DROP_MOVE;
+		Transfer[] transfers = new Transfer[] { PluginTransfer.getInstance(),
+				TextTransfer.getInstance() };
+		treeViewer.addDragSupport(ops, transfers, new ResultTreeDragListener(
 				treeViewer));
 
 		// Handle Double Clicks on items
