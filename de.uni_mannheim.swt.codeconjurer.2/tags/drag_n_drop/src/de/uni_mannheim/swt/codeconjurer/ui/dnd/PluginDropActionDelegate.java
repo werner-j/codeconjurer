@@ -13,6 +13,8 @@
 package de.uni_mannheim.swt.codeconjurer.ui.dnd;
 
 import org.apache.log4j.Logger;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ui.part.IDropActionDelegate;
 
 /**
@@ -31,6 +33,14 @@ public class PluginDropActionDelegate implements IDropActionDelegate {
 	 */
 	@Override
 	public boolean run(Object source, Object target) {
+		IPackageFragment pkg = (IPackageFragment) target;
+		try {
+			pkg.createCompilationUnit("Stack.java", new String((byte[]) source),
+					true, null);
+		} catch (JavaModelException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		logger.debug("Received " + source.toString() + " for "
 				+ target.toString());
 		return false;

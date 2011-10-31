@@ -78,9 +78,10 @@ public class ResultTreeDragListener implements DragSourceListener {
 			event.data = selectedElement;
 			logger.debug("ResourceTransfer issued");
 		} else if (PluginTransfer.getInstance().isSupportedType(event.dataType)) {
-			event.data = new PluginTransferData(
-					"de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction",
-					selectedElement.toString().getBytes());
+			if (selectedElement.getNodeType() == BodyDeclaration.TYPE_DECLARATION)
+				event.data = new PluginTransferData(
+						"de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction",
+						selectedElement.toString().getBytes());
 			logger.debug("PluginTransfer issued");
 		}
 	}
