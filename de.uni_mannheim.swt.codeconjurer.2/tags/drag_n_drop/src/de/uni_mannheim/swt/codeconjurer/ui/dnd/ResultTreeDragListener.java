@@ -21,7 +21,8 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.PluginTransferData;
-import org.eclipse.ui.part.ResourceTransfer;
+
+import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 
 /**
  * @author Werner Janjic
@@ -71,18 +72,17 @@ public class ResultTreeDragListener implements DragSourceListener {
 		BodyDeclaration selectedElement = (BodyDeclaration) selection[0]
 				.getData();
 		if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
+			// TextTransfer simply transfers the selected code element.
 			event.data = selectedElement.toString();
-			logger.debug("TextTransfer issued");
-		} else if (ResourceTransfer.getInstance().isSupportedType(
-				event.dataType)) {
-			event.data = selectedElement;
-			logger.debug("ResourceTransfer issued");
+			logger.debug("TextTransfer triggered");
 		} else if (PluginTransfer.getInstance().isSupportedType(event.dataType)) {
-			if (selectedElement.getNodeType() == BodyDeclaration.TYPE_DECLARATION)
-				event.data = new PluginTransferData(
-						"de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction",
-						selectedElement.toString().getBytes());
-			logger.debug("PluginTransfer issued");
+			// For a PluginTransfer, we transmit the URI of the element.
+			// The DropListener is responsible for handling this.
+			event.data = new PluginTransferData(
+					"de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction",
+					((String) selectedElement.getProperty(ResultProperty.URI
+							.name())).getBytes());
+			logger.debug("PluginTransfer triggered");
 		}
 	}
 

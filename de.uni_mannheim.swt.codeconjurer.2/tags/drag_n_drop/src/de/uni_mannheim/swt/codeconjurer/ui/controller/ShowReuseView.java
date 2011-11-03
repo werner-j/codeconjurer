@@ -15,6 +15,7 @@ package de.uni_mannheim.swt.codeconjurer.ui.controller;
 import org.apache.log4j.Logger;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
@@ -72,11 +73,15 @@ public class ShowReuseView implements IWorkbenchWindowActionDelegate {
 	 */
 	@Override
 	public void dispose() {
-		if (reuseView != null) {
+		if (reuseView != null && window != null) {
 			try {
-				window.getActivePage().hideView(reuseView);
+				IWorkbenchPage page = window.getActivePage();
+				if (page != null) {
+					page.hideView(reuseView);
+				}
 				reuseView = null;
 			} catch (Exception e) {
+				CrashReporter.reportException(e);
 				logger.debug(e.getLocalizedMessage());
 			}
 		}

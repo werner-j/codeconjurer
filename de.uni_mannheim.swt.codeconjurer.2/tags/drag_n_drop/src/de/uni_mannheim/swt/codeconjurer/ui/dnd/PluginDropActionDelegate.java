@@ -17,6 +17,9 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ui.part.IDropActionDelegate;
 
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
+import de.uni_mannheim.swt.codeconjurer.ui.threads.TypeDropJob;
+
 /**
  * @author Werner Janjic
  * 
@@ -33,17 +36,39 @@ public class PluginDropActionDelegate implements IDropActionDelegate {
 	 */
 	@Override
 	public boolean run(Object source, Object target) {
-		IPackageFragment pkg = (IPackageFragment) target;
 		try {
-			pkg.createCompilationUnit("Stack.java", new String((byte[]) source),
-					true, null);
+			if (target instanceof IPackageFragment) {
+				return insertTypeDeclaration(source, target);
+			}
 		} catch (JavaModelException e) {
-			// TODO Auto-generated catch block
+			logger.debug("Do not overwrite.");
+			return false;
+		} catch (Exception e) {
+			logger.debug("Problem during dropping to target.");
+			CrashReporter.reportException(e);
 			e.printStackTrace();
+			return false;
 		}
-		logger.debug("Received " + source.toString() + " for "
-				+ target.toString());
 		return false;
+	}
+
+	/**
+	 * Checks if the provided source is a type declaration and the target is an
+	 * PackageFragment and inserts the type into the package.
+	 * 
+	 * @param source
+	 * @param target
+	 * @return
+	 * @throws JavaModelException
+	 * @throws Exception
+	 */
+	private boolean insertTypeDeclaration(Object source, Object target)
+			throws JavaModelException, Exception {
+		// To make the UI stay responsive, we do this in a job
+		TypeDropJob dropJob = new TypeDropJob((byte[]) source,
+				(IPackageFragment) target);
+		dropJob.schedule();
+		return true;
 	}
 
 }

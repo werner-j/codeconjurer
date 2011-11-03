@@ -77,6 +77,7 @@ public class ResultItem {
 	 * @param source
 	 */
 	public void setSource(String source) {
+		properties.put(ResultProperty.RAW_SOURCE, source);
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setSource(source.toCharArray());
@@ -106,13 +107,19 @@ public class ResultItem {
 	/**
 	 * Returns the source code of this item
 	 * 
+	 * @param raw
+	 *            raw result or with <i>found by</i> header
 	 * @return
 	 */
-	public String getSource() {
+	public String getSource(boolean raw) {
 		if (resultCompilationUnit != null) {
-			return ("// Sourcecode found by merobase.com\r\n" + "// "
-					+ properties.get(ResultProperty.SHORT_URL) + "\r\n" + resultCompilationUnit
-						.getJavaElement());
+			if (raw) {
+				return properties.get(ResultProperty.RAW_SOURCE);
+			} else {
+				return ("// Sourcecode found by merobase.com\r\n" + "// "
+						+ properties.get(ResultProperty.SHORT_URL) + "\r\n" + resultCompilationUnit
+							.getJavaElement());
+			}
 		} else {
 			return null;
 		}
@@ -127,43 +134,25 @@ public class ResultItem {
 	 */
 	public BodyDeclaration getTypeRoot() {
 		if (resultCompilationUnit != null) {
-			BodyDeclaration typeDec = null;
+			BodyDeclaration declaration = null;
 			for (Object typeObject : resultCompilationUnit.types()) {
 				BodyDeclaration typeBodyDec = (BodyDeclaration) typeObject;
 				if (typeBodyDec.getNodeType() == BodyDeclaration.TYPE_DECLARATION) {
 					TypeDeclaration type = (TypeDeclaration) typeBodyDec;
 					if (type.getName().getFullyQualifiedName()
 							.equals(getProperty(ResultProperty.NAME)))
-						typeDec = type;
+						declaration = type;
 				}
 				if (typeBodyDec.getNodeType() == BodyDeclaration.ENUM_DECLARATION) {
 					EnumDeclaration type = (EnumDeclaration) typeBodyDec;
 					if (type.getName().getFullyQualifiedName()
 							.equals(getProperty(ResultProperty.NAME)))
-						typeDec = type;
+						declaration = type;
 				}
 			}
-			if (typeDec != null) {
-				typeDec.setProperty(ResultProperty.SHORT_URL.name(),
-						properties.get(ResultProperty.SHORT_URL));
-				typeDec.setProperty(ResultProperty.URI.name(),
-						properties.get(ResultProperty.SHORT_URL));
-				typeDec.setProperty(ResultProperty.EXECUTABILITY.name(),
-						properties.get(ResultProperty.EXECUTABILITY));
-				typeDec.setProperty(ResultProperty.LICENSE.name(),
-						properties.get(ResultProperty.LICENSE));
-				typeDec.setProperty(ResultProperty.QUERY.name(),
-						properties.get(ResultProperty.QUERY));
-				typeDec.setProperty(ResultProperty.SEARCH_ID.name(),
-						properties.get(ResultProperty.SEARCH_ID));
-			} else {
-				logger.debug("No primary type for "
-						+ properties.get(ResultProperty.SHORT_URL));
-			}
-			return typeDec;
-		} else {
-			return null;
+			return copyProperties(declaration);
 		}
+		return null;
 	}
 
 	/**
@@ -188,7 +177,7 @@ public class ResultItem {
 			String lUri = getTypeRoot().getProperty(ResultProperty.URI.name())
 					+ CodeConjurer.URI_DELIMITER + sign;
 			if (lUri.equals(uri))
-				return method;
+				return copyProperties(method);
 		}
 		return null;
 	}
@@ -224,6 +213,32 @@ public class ResultItem {
 	 */
 	public void setSearchId(String id) {
 		properties.put(ResultProperty.SEARCH_ID, id);
+	}
+
+	/**
+	 * Copy the result item's properties to the declaration
+	 * 
+	 * @param declaration
+	 * @return
+	 */
+	private BodyDeclaration copyProperties(BodyDeclaration declaration) {
+		declaration.setProperty(ResultProperty.SHORT_URL.name(),
+				properties.get(ResultProperty.SHORT_URL));
+		declaration.setProperty(ResultProperty.URI.name(),
+				properties.get(ResultProperty.SHORT_URL));
+		declaration.setProperty(ResultProperty.NAME.name(),
+				properties.get(ResultProperty.NAME));
+		declaration.setProperty(ResultProperty.EXECUTABILITY.name(),
+				properties.get(ResultProperty.EXECUTABILITY));
+		declaration.setProperty(ResultProperty.LICENSE.name(),
+				properties.get(ResultProperty.LICENSE));
+		declaration.setProperty(ResultProperty.QUERY.name(),
+				properties.get(ResultProperty.QUERY));
+		declaration.setProperty(ResultProperty.SEARCH_ID.name(),
+				properties.get(ResultProperty.SEARCH_ID));
+		declaration.setProperty(ResultProperty.RAW_SOURCE.name(),
+				properties.get(ResultProperty.RAW_SOURCE));
+		return declaration;
 	}
 
 }

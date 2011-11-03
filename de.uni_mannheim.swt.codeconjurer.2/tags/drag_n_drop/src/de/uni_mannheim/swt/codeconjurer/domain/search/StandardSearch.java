@@ -204,7 +204,7 @@ public class StandardSearch extends Search {
 
 	private boolean getSource(ResultItem r) {
 		if (r != null) {
-			String source = r.getSource();
+			String source = r.getSource(true);
 			if (source == null) {
 				String urlString = r.getProperty(ResultProperty.SHORT_URL);
 				try {
@@ -242,13 +242,15 @@ public class StandardSearch extends Search {
 	 * @return
 	 */
 	private String brandSource(String source, String urlString) {
-		if (source.startsWith("/**")) {
-			source = "/** Sourcecode fetched by merobase.com \r\n * Origin: "
-					+ urlString + "\r\n" + " *"
+		if (source.startsWith("/*")) {
+			source = "/** \r\n * Sourcecode fetched by merobase.com \r\n * Origin: "
+					+ urlString
+					+ "\r\n"
+					+ " * "
 					+ source.substring(3, source.length());
 		} else {
-			source = "/** Sourcecode fetched by merobase.com \r\n * Origin: "
-					+ urlString + " */" + source;
+			source = "/** \r\n * Sourcecode fetched by merobase.com \r\n * Origin: "
+					+ urlString + "\r\n */\r\n" + source;
 		}
 		return source;
 	}

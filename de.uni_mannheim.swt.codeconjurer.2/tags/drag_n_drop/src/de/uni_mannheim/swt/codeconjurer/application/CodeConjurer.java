@@ -40,6 +40,7 @@ import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 public class CodeConjurer {
 
 	public static final String URI_DELIMITER = "/#cc#/";
+	public static final String COPYRIGHT = "// Code Recommendation by merobase.com";
 	private static CodeConjurer instance;
 	private HashMap<IEditorPart, ParallelSearchPrevention> searchJobs = new HashMap<IEditorPart, ParallelSearchPrevention>();
 	private Logger logger = Logger.getLogger(CodeChangedListener.class);

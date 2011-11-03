@@ -24,6 +24,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 import com.merotronics.merobase.ws.action.ResultBean;
 
+import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Query;
 
 /**
@@ -153,12 +154,39 @@ public class Result extends Observable {
 	}
 
 	/**
+	 * Returns the <code>BodyDeclaration</code> associated with the given uri or
+	 * null if no match.
+	 * 
+	 * @param uri
+	 * @return
+	 */
+	public BodyDeclaration find(String uri) {
+		String shortUrl = "";
+		if (uri.contains(CodeConjurer.URI_DELIMITER)) {
+			shortUrl = shortUrl.substring(0,
+					shortUrl.indexOf(CodeConjurer.URI_DELIMITER));
+		} else {
+			shortUrl = uri;
+		}
+		ResultItem result = getResultItem(shortUrl);
+		if (result != null) {
+			return result.find(uri);
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Returns the <code>ResultItem</code> for the given URL
 	 * 
 	 * @param shortUrl
 	 * @return
 	 */
 	public ResultItem getResultItem(String shortUrl) {
+		if (shortUrl.contains(CodeConjurer.URI_DELIMITER)) {
+			shortUrl = shortUrl.substring(0,
+					shortUrl.indexOf(CodeConjurer.URI_DELIMITER));
+		}
 		return resultItems.get(shortUrl);
 	}
 
@@ -173,7 +201,7 @@ public class Result extends Observable {
 			return "// Sourcecode for " + shortUrl
 					+ "\r\n// not available from cache.";
 		} else {
-			return resultItems.get(shortUrl).getSource();
+			return resultItems.get(shortUrl).getSource(true);
 		}
 	}
 
@@ -187,15 +215,12 @@ public class Result extends Observable {
 		if (source != null && !source.equals("null")
 				&& !source.contains("/** Source could not be fetched */")) {
 			logger.debug("Add source for " + shortUrl);
-			resultItems.get(shortUrl).setSource(
-					"// Brought to you by merobase.com\r\n// Origin: \r\n// "
-							+ shortUrl + "\r\n" + source);
+			resultItems.get(shortUrl).setSource(source);
 			successfulSources.put(shortUrl, source);
 		} else {
 			logger.debug("Source for " + shortUrl + " not available");
 			source = "// Sourcecode for " + shortUrl + "\r\n// not available.";
 			resultItems.get(shortUrl).setSource(source);
-			// successfulSources.put(shortUrl, source);
 			successfulSources.remove(shortUrl);
 		}
 		setChanged();
