@@ -58,6 +58,7 @@ public class ResultItem {
 		properties.put(ResultProperty.LICENSE, rb.getLicense());
 		properties.put(ResultProperty.LICENSE_DESCRIPTION,
 				rb.getLicenseDescription());
+		properties.put(ResultProperty.TEST_RESULT, rb.getTestResult());
 		logger.debug("ResultItem created");
 	}
 
@@ -174,9 +175,9 @@ public class ResultItem {
 			for (Object p : method.parameters()) {
 				sign += p.toString();
 			}
-			String lUri = getTypeRoot().getProperty(ResultProperty.URI.name())
+			String mUri = getTypeRoot().getProperty(ResultProperty.URI.name())
 					+ CodeConjurer.URI_DELIMITER + sign;
-			if (lUri.equals(uri))
+			if (mUri.equals(mUri))
 				return copyProperties(method);
 		}
 		return null;
@@ -222,22 +223,13 @@ public class ResultItem {
 	 * @return
 	 */
 	private BodyDeclaration copyProperties(BodyDeclaration declaration) {
-		declaration.setProperty(ResultProperty.SHORT_URL.name(),
-				properties.get(ResultProperty.SHORT_URL));
+		for (ResultProperty key : properties.keySet()) {
+			declaration.setProperty(key.name(), properties.get(key));
+			logger.debug("Copy property " + key.name() + ": "
+					+ properties.get(key));
+		}
 		declaration.setProperty(ResultProperty.URI.name(),
 				properties.get(ResultProperty.SHORT_URL));
-		declaration.setProperty(ResultProperty.NAME.name(),
-				properties.get(ResultProperty.NAME));
-		declaration.setProperty(ResultProperty.EXECUTABILITY.name(),
-				properties.get(ResultProperty.EXECUTABILITY));
-		declaration.setProperty(ResultProperty.LICENSE.name(),
-				properties.get(ResultProperty.LICENSE));
-		declaration.setProperty(ResultProperty.QUERY.name(),
-				properties.get(ResultProperty.QUERY));
-		declaration.setProperty(ResultProperty.SEARCH_ID.name(),
-				properties.get(ResultProperty.SEARCH_ID));
-		declaration.setProperty(ResultProperty.RAW_SOURCE.name(),
-				properties.get(ResultProperty.RAW_SOURCE));
 		return declaration;
 	}
 

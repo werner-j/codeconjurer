@@ -23,6 +23,7 @@ import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.PluginTransferData;
 
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
+import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 
 /**
  * @author Werner Janjic
@@ -69,20 +70,27 @@ public class ResultTreeDragListener implements DragSourceListener {
 	public void dragSetData(DragSourceEvent event) {
 		logger.debug(event.dataType + " requested by drop target.");
 
-		BodyDeclaration selectedElement = (BodyDeclaration) selection[0]
-				.getData();
-		if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-			// TextTransfer simply transfers the selected code element.
-			event.data = selectedElement.toString();
-			logger.debug("TextTransfer triggered");
-		} else if (PluginTransfer.getInstance().isSupportedType(event.dataType)) {
-			// For a PluginTransfer, we transmit the URI of the element.
-			// The DropListener is responsible for handling this.
-			event.data = new PluginTransferData(
-					"de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction",
-					((String) selectedElement.getProperty(ResultProperty.URI
-							.name())).getBytes());
-			logger.debug("PluginTransfer triggered");
+		try {
+			BodyDeclaration selectedElement = (BodyDeclaration) selection[0]
+					.getData();
+			if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
+				// TextTransfer simply transfers the selected code element.
+				event.data = selectedElement.toString();
+				logger.debug("TextTransfer triggered");
+			} else if (PluginTransfer.getInstance().isSupportedType(
+					event.dataType)) {
+				// For a PluginTransfer, we transmit the URI of the element.
+				// The DropListener is responsible for handling this.
+				String uri = (String) selectedElement
+						.getProperty(ResultProperty.URI.name());
+				event.data = new PluginTransferData(
+						"de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction",
+						(uri.getBytes()));
+				logger.debug("PluginTransfer triggered");
+			}
+		} catch (Exception e) {
+			CrashReporter.reportException(e);
+			logger.debug("Could not set drag data: " + e.toString());
 		}
 	}
 
