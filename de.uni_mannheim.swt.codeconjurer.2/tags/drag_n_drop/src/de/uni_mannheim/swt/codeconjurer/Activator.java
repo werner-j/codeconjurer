@@ -19,6 +19,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -67,6 +68,11 @@ public class Activator extends AbstractUIPlugin {
 				PreferenceConstants.P_LAUNCH);
 		getDefault().getPreferenceStore().setValue(
 				PreferenceConstants.P_LAUNCH, ++launches);
+
+		// Store the Eclipse Version
+		String v = Display.getAppVersion();
+		getDefault().getPreferenceStore().setValue(
+				PreferenceConstants.P_PLATFORM_VERSION, v);
 
 		Logger.getLogger(Activator.class).debug(
 				"Code Conjurer plug-in start #" + launches);

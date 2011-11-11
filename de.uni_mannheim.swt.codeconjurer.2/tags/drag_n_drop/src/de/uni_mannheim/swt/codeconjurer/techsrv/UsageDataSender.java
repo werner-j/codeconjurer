@@ -76,6 +76,9 @@ public class UsageDataSender {
 					+ Platform.getBundle("de.uni_mannheim.swt.codeconjurer")
 							.getHeaders().get("Bundle-Version");
 
+			transferData += "&Suppl-Eclipse-Version="
+					+ Activator.getDefault().getPreferenceStore()
+							.getString(PreferenceConstants.P_PLATFORM_VERSION);
 			transferData += "&Suppl-Server="
 					+ Activator.getDefault().getPreferenceStore()
 							.getString(PreferenceConstants.P_SERVER);

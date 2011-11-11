@@ -375,62 +375,41 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 	@Override
 	public void partActivated(final IWorkbenchPartReference partRef) {
-		String id = partRef.getId();
-		if (id.equals("org.eclipse.jdt.ui.CompilationUnitEditor")) {
-			IEditorPart editor = PluginUI.getActiveEditor();
-			Control ctrl = (Control) editor.getAdapter(Control.class);
-			DropTarget dropTarget = (DropTarget) ctrl
-					.getData(DND.DROP_TARGET_KEY);
-			if (dropTarget != null) {
-				try {
-					// Add drop listener to editor
-					logger.debug("Add drop listener to "
-							+ dropTarget.toString());
-					dropTarget.addDropListener(new JavaEditorDropListener());
+		if (partRef != null) {
+			String id = partRef.getId();
+			if (id.equals("org.eclipse.jdt.ui.CompilationUnitEditor")) {
+				IEditorPart editor = PluginUI.getActiveEditor();
+				Control ctrl = (Control) editor.getAdapter(Control.class);
+				DropTarget dropTarget = (DropTarget) ctrl
+						.getData(DND.DROP_TARGET_KEY);
+				if (dropTarget != null) {
+					try {
+						// Add drop listener to editor
+						logger.debug("Add drop listener to "
+								+ dropTarget.toString());
+						dropTarget
+								.addDropListener(new JavaEditorDropListener());
 
-				} catch (Exception e) {
-					CrashReporter.reportException(e);
-					logger.debug("Could not register drop service: "
-							+ e.getMessage());
-					e.printStackTrace();
+					} catch (Exception e) {
+						CrashReporter.reportException(e);
+						logger.debug("Could not register drop service: "
+								+ e.getMessage());
+						e.printStackTrace();
+					}
 				}
-			}
-			updateStatus();
-			resultTree.refresh();
-			TreeItem selection = resultTree.getSelectedElement();
-			if (selection != null)
-				preview.setCode(selection.getData().toString());
-		}
-		if (partRef.getId().equals(
-				"de.uni_mannheim.swt.codeconjurer.views.ResultView")) {
-			if (partRef.getTitle().contains("*")) {
-				partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
-						.asyncExec(new Runnable() {
-							@Override
-							public void run() {
-								((ResultView) partRef.getPart(true))
-										.setPartName(TITLE);
-							}
-						});
+				updateStatus();
+				resultTree.refresh();
+				TreeItem selection = resultTree.getSelectedElement();
+				if (selection != null)
+					preview.setCode(selection.getData().toString());
 			}
 		}
 	}
 
 	@Override
 	public void partBroughtToTop(final IWorkbenchPartReference partRef) {
-		if (partRef.getId().equals(
-				"de.uni_mannheim.swt.codeconjurer.views.ResultView")) {
-			if (partRef.getTitle().contains("*")) {
-				partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
-						.asyncExec(new Runnable() {
-							@Override
-							public void run() {
-								((ResultView) partRef.getPart(true))
-										.setPartName(TITLE);
-							}
-						});
-			}
-		}
+		partActivated(partRef);
+		partVisible(partRef);
 	}
 
 	@Override
@@ -447,8 +426,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 	@Override
 	public void partOpened(IWorkbenchPartReference partRef) {
-		// TODO Auto-generated method stub
-
+		partActivated(partRef);
+		partVisible(partRef);
 	}
 
 	@Override
@@ -459,17 +438,20 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 	@Override
 	public void partVisible(final IWorkbenchPartReference partRef) {
-		if (partRef.getId().equals(
-				"de.uni_mannheim.swt.codeconjurer.views.ResultView")) {
-			if (partRef.getTitle().contains("*")) {
-				partRef.getPage().getWorkbenchWindow().getShell().getDisplay()
-						.asyncExec(new Runnable() {
-							@Override
-							public void run() {
-								((ResultView) partRef.getPart(true))
-										.setPartName(TITLE);
-							}
-						});
+		if (partRef != null) {
+			partActivated(partRef);
+			if (partRef.getId().equals(
+					"de.uni_mannheim.swt.codeconjurer.views.ResultView")) {
+				if (partRef.getTitle().contains("*")) {
+					partRef.getPage().getWorkbenchWindow().getShell()
+							.getDisplay().asyncExec(new Runnable() {
+								@Override
+								public void run() {
+									((ResultView) partRef.getPart(true))
+											.setPartName(TITLE);
+								}
+							});
+				}
 			}
 		}
 	}

@@ -15,7 +15,7 @@ package de.uni_mannheim.swt.codeconjurer.domain.result;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Observable;
 
@@ -39,9 +39,9 @@ public class Result extends Observable {
 	private String sessionId;
 
 	// SHORT_URL, ResultItem
-	private HashMap<String, ResultItem> resultItems = new HashMap<String, ResultItem>();
+	private LinkedHashMap<String, ResultItem> resultItems = new LinkedHashMap<String, ResultItem>();
 
-	private HashMap<String, String> successfulSources = new HashMap<String, String>();
+	private LinkedHashMap<String, String> successfulSources = new LinkedHashMap<String, String>();
 
 	private Calendar creation;
 
@@ -115,7 +115,7 @@ public class Result extends Observable {
 	 * @param results
 	 */
 	public void setResultList(ArrayList<ResultBean> results) {
-		resultItems = new HashMap<String, ResultItem>();
+		resultItems = new LinkedHashMap<String, ResultItem>();
 		for (ResultBean result : results) {
 			ResultItem resultItem = new ResultItem(result);
 			resultItem.setQuery(query);
@@ -163,14 +163,15 @@ public class Result extends Observable {
 	public BodyDeclaration find(String uri) {
 		String shortUrl = "";
 		if (uri.contains(CodeConjurer.URI_DELIMITER)) {
-			shortUrl = shortUrl.substring(0,
-					shortUrl.indexOf(CodeConjurer.URI_DELIMITER));
+			int pos = uri.indexOf(CodeConjurer.URI_DELIMITER);
+			shortUrl = uri.substring(0, pos);
 		} else {
 			shortUrl = uri;
 		}
 		ResultItem result = getResultItem(shortUrl);
 		if (result != null) {
-			return result.find(uri);
+			BodyDeclaration declaration = result.find(uri);
+			return declaration;
 		} else {
 			return null;
 		}

@@ -18,6 +18,8 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TreeSelection;
 
+import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
+
 /**
  * @author Werner Janjic
  * 
@@ -40,5 +42,7 @@ public class ResultDoubleClickListener implements IDoubleClickListener {
 				.getFirstElement();
 		logger.debug("Selected element's source: \r\n"
 				+ selectedElement.toString());
+		logger.debug("URI: "
+				+ selectedElement.getProperty(ResultProperty.URI.name()));
 	}
 }

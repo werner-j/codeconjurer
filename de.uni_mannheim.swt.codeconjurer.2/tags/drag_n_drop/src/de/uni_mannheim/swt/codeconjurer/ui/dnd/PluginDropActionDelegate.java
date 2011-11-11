@@ -13,12 +13,14 @@
 package de.uni_mannheim.swt.codeconjurer.ui.dnd;
 
 import org.apache.log4j.Logger;
+import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.ui.part.IDropActionDelegate;
 
 import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
-import de.uni_mannheim.swt.codeconjurer.ui.threads.TypeDropJob;
+import de.uni_mannheim.swt.codeconjurer.ui.threads.CompilationUnitDropJob;
+import de.uni_mannheim.swt.codeconjurer.ui.threads.PackageFragmentDropJob;
 
 /**
  * @author Werner Janjic
@@ -38,7 +40,10 @@ public class PluginDropActionDelegate implements IDropActionDelegate {
 	public boolean run(Object source, Object target) {
 		try {
 			if (target instanceof IPackageFragment) {
-				return insertTypeDeclaration(source, target);
+				return insertTypeDeclaration(source, (IPackageFragment) target);
+			}
+			if (target instanceof ICompilationUnit) {
+				return insertTypeDeclaration(source, (ICompilationUnit) target);
 			}
 		} catch (JavaModelException e) {
 			logger.debug("Do not overwrite.");
@@ -52,6 +57,14 @@ public class PluginDropActionDelegate implements IDropActionDelegate {
 		return false;
 	}
 
+	private boolean insertTypeDeclaration(Object source, ICompilationUnit target)
+			throws JavaModelException {
+		CompilationUnitDropJob dropJob = new CompilationUnitDropJob(
+				(byte[]) source, target);
+		dropJob.schedule();
+		return true;
+	}
+
 	/**
 	 * Checks if the provided source is a type declaration and the target is an
 	 * PackageFragment and inserts the type into the package.
@@ -62,10 +75,10 @@ public class PluginDropActionDelegate implements IDropActionDelegate {
 	 * @throws JavaModelException
 	 * @throws Exception
 	 */
-	private boolean insertTypeDeclaration(Object source, Object target)
+	private boolean insertTypeDeclaration(Object source, IPackageFragment target)
 			throws JavaModelException, Exception {
 		// To make the UI stay responsive, we do this in a job
-		TypeDropJob dropJob = new TypeDropJob((byte[]) source,
+		PackageFragmentDropJob dropJob = new PackageFragmentDropJob((byte[]) source,
 				(IPackageFragment) target);
 		dropJob.schedule();
 		return true;

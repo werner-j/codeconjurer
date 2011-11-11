@@ -12,6 +12,7 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.preferences;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
@@ -34,10 +35,19 @@ import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 public class CodeConjurerPreferences extends FieldEditorPreferencePage
 		implements IWorkbenchPreferencePage {
 
+	private String platformVersion = Activator.getDefault()
+			.getPreferenceStore()
+			.getString(PreferenceConstants.P_PLATFORM_VERSION);
+
 	public CodeConjurerPreferences() {
 		super(GRID);
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("Code Conjurer Preferences");
+
+		String ccVersion = Platform
+				.getBundle("de.uni_mannheim.swt.codeconjurer").getHeaders()
+				.get("Bundle-Version");
+
+		setDescription("Code Conjurer " + ccVersion);
 	}
 
 	/**
@@ -58,6 +68,32 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 		// Choose between 5 and 100 results
 		addField(new SliderFieldEditor(PreferenceConstants.P_RESULTS,
 				"&Results per search:", 5, 105, 5, getFieldEditorParent()));
+
+		// Issue with JLS3 parser in Eclipse 3.7.1
+		if (platformVersion.contains("3.7.1")) {
+			showJLSBugNote();
+		}
+	}
+
+	/**
+	 * Show an alert when Eclipse 3.7.1 is used.
+	 * 
+	 * @see eclipse bug 361938:
+	 *      https://bugs.eclipse.org/bugs/show_bug.cgi?id=361938
+	 */
+	private void showJLSBugNote() {
+		addField(new LabelFieldEditor("", getFieldEditorParent()));
+		addField(new LabelFieldEditor(
+				"You are using Eclipse "
+						+ platformVersion
+						+ " "
+						+ "which has an issue with\r\n"
+						+ "the Java parser.\r\n"
+						+ "Due to a bug in org.eclipse.jdt.core.dom.TryStatement some results\r\n"
+						+ "may not show source code. This issue is fixed in 3.7.2 and does not\r\n"
+						+ "appear in 3.7.0.\r\n\r\n"
+						+ "See https://bugs.eclipse.org/bugs/show_bug.cgi?id=361938 for details.",
+				getFieldEditorParent()));
 	}
 
 	/*

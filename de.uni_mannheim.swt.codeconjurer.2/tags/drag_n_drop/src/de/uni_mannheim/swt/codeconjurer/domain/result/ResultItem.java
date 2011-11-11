@@ -177,7 +177,7 @@ public class ResultItem {
 			}
 			String mUri = getTypeRoot().getProperty(ResultProperty.URI.name())
 					+ CodeConjurer.URI_DELIMITER + sign;
-			if (mUri.equals(mUri))
+			if (mUri.equals(uri))
 				return copyProperties(method);
 		}
 		return null;
@@ -223,13 +223,13 @@ public class ResultItem {
 	 * @return
 	 */
 	private BodyDeclaration copyProperties(BodyDeclaration declaration) {
-		for (ResultProperty key : properties.keySet()) {
-			declaration.setProperty(key.name(), properties.get(key));
-			logger.debug("Copy property " + key.name() + ": "
-					+ properties.get(key));
+		if (declaration != null) {
+			for (ResultProperty key : properties.keySet()) {
+				declaration.setProperty(key.name(), properties.get(key));
+			}
+			declaration.setProperty(ResultProperty.URI.name(),
+					properties.get(ResultProperty.SHORT_URL));
 		}
-		declaration.setProperty(ResultProperty.URI.name(),
-				properties.get(ResultProperty.SHORT_URL));
 		return declaration;
 	}
 

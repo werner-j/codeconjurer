@@ -94,7 +94,7 @@ public class ResultTree {
 		treeViewer.addSelectionChangedListener(listener);
 
 		// Enable Drag & Drop Support
-		int ops = DND.DROP_COPY | DND.DROP_MOVE;
+		int ops = DND.DROP_DEFAULT;
 		Transfer[] transfers = new Transfer[] { PluginTransfer.getInstance(),
 				TextTransfer.getInstance() };
 		treeViewer.addDragSupport(ops, transfers, new ResultTreeDragListener(

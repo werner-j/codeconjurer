@@ -24,6 +24,8 @@ import org.eclipse.ui.part.PluginTransferData;
 
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
+import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
+import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 /**
  * @author Werner Janjic
@@ -59,6 +61,10 @@ public class ResultTreeDragListener implements DragSourceListener {
 		if (selection == null || selection.length == 0) {
 			event.doit = false;
 		}
+		BodyDeclaration selectedElement = (BodyDeclaration) selection[0]
+				.getData();
+		logger.debug("URI: "
+				+ selectedElement.getProperty(ResultProperty.URI.name()));
 	}
 
 	/**
@@ -106,8 +112,11 @@ public class ResultTreeDragListener implements DragSourceListener {
 		if (event.doit) {
 			logger.debug("Drag of "
 					+ viewer.getTree().getSelection()[0].getText()
-					+ " finished. Format the Sourcecode properly...");
+					+ " finished.");
 		}
+		// If we don't do this, the next drag may take the URL of the parent
+		// instead of the selection.
+		PluginUI.fireEvent(UIEvent.REFRESH);
 	}
 
 }

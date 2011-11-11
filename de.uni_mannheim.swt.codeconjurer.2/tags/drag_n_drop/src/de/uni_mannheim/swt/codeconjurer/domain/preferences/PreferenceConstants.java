@@ -39,4 +39,6 @@ public class PreferenceConstants {
 
 	public static final String P_CRASH_REPORTING = "crashReporting";
 
+	public static final String P_PLATFORM_VERSION = "eclipseVersion";
+
 }

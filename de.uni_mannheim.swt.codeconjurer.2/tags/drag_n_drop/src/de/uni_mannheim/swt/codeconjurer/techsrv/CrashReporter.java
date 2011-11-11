@@ -91,6 +91,9 @@ public class CrashReporter {
 						+ el.getMethodName() + "<" + el.getLineNumber() + ">";
 			}
 			data += "&lines=" + ln;
+			data += "&Suppl-Eclipse-Version="
+					+ Activator.getDefault().getPreferenceStore()
+							.getString(PreferenceConstants.P_PLATFORM_VERSION);
 			data += "&Suppl-Description=" + ex.toString();
 			data += "&Suppl-Server="
 					+ Activator.getDefault().getPreferenceStore()
