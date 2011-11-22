@@ -51,7 +51,6 @@ public class CodePreview {
 						&& !Java2Html.convertToHtml(code).equals(actualContent)) {
 					codeBrowser.setText(Java2Html.convertToHtml(code), false);
 					logger.debug("Preview of: " + code);
-					System.out.println();
 				}
 				codeBrowser.update();
 			}
