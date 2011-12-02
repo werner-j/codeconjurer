@@ -81,9 +81,19 @@ public class ResultLabelProvider extends LabelProvider implements
 				}
 			}
 			if (columnIndex == 2) {
+				// Was testing / adaptation successful?
 				if (((String) element.getProperty(ResultProperty.EXECUTABILITY
 						.name())).equals(Executability.TESTED.value())) {
-					return "TESTED";
+					// Set color to green if no adapter is necessary, yellow
+					// otherwise
+					if (((String) element.getProperty(ResultProperty.TEST_RESULT
+							.name())).startsWith("// No adapter necessary")) {
+						return "TESTED";
+					} else {
+						return "ADAPTED";
+					}
+				} else {
+					return "FAILED";
 				}
 			}
 		}
@@ -118,10 +128,21 @@ public class ResultLabelProvider extends LabelProvider implements
 		}
 		if (columnIndex == 2
 				&& element.getNodeType() == ASTNode.TYPE_DECLARATION) {
+			// Was testing / adaptation successful?
 			if (((String) element.getProperty(ResultProperty.EXECUTABILITY
 					.name())).equals(Executability.TESTED.value())) {
-				color = Display.getCurrent().getSystemColor(
-						SWT.COLOR_DARK_GREEN);
+				// Set color to green if no adapter is necessary, yellow
+				// otherwise
+				if (((String) element.getProperty(ResultProperty.TEST_RESULT
+						.name())).startsWith("// No adapter necessary")) {
+					color = Display.getCurrent().getSystemColor(
+							SWT.COLOR_DARK_GREEN);
+				} else {
+					color = Display.getCurrent().getSystemColor(
+							SWT.COLOR_DARK_YELLOW);
+				}
+			} else {
+				color = Display.getCurrent().getSystemColor(SWT.COLOR_RED);
 			}
 		}
 		return color;

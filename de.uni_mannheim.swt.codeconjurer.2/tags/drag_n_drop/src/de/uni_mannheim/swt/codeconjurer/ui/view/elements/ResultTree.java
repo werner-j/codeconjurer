@@ -75,9 +75,9 @@ public class ResultTree {
 		colLicense
 				.setToolTipText("The resource's license or 'no license' if not parseable / unknown license.");
 
-		TreeColumn colTested = new TreeColumn(tree, SWT.LEFT);
+		TreeColumn colTested = new TreeColumn(tree, SWT.FILL);
 		colTested.setText("JUnit");
-		colTested.setWidth(50);
+//		colTested.setWidth(75);
 		colTested.setMoveable(true);
 		colTested
 				.setToolTipText("This column will be coloured green, if the artifact passed a server-side "
@@ -94,7 +94,7 @@ public class ResultTree {
 		treeViewer.addSelectionChangedListener(listener);
 
 		// Enable Drag & Drop Support
-		int ops = DND.DROP_DEFAULT;
+		int ops = DND.DROP_COPY | DND.DROP_MOVE;
 		Transfer[] transfers = new Transfer[] { PluginTransfer.getInstance(),
 				TextTransfer.getInstance() };
 		treeViewer.addDragSupport(ops, transfers, new ResultTreeDragListener(
