@@ -12,15 +12,18 @@
  */
 package de.uni_mannheim.swt.codeconjurer.domain.search;
 
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.IEditorPart;
 
+import com.merotronics.merobase.ws.action.IOException_Exception;
 import com.merotronics.merobase.ws.action.ResultBean;
 import com.merotronics.merobase.ws.client.util.WSConnection;
 
@@ -43,6 +46,7 @@ public class StandardSearch extends Search {
 			.getPreferenceStore().getString(PreferenceConstants.P_RESULTS));
 
 	private WSConnection ws;
+	private String session;
 
 	private HashMap<String, String> supplInf = new HashMap<String, String>();
 
@@ -57,33 +61,65 @@ public class StandardSearch extends Search {
 
 		try {
 			ws = new WSConnection(serverLocation);
-			String session = "";
-			String queryString = query.getQuery();
+			session = null;
+			final String queryString = query.getQuery();
 			result.setQuery(query);
 			logger.debug("Initialize search for " + numResults
 					+ " components at " + serverLocation + ".");
 			if (queryString.equals("")) {
 				notifySearchEventListeners(SearchEvent.ERROR);
+				done();
 				return Status.CANCEL_STATUS;
 			}
 
-			// Get session
-			session = ws.initComponentSearch(queryString, username, password,
-					numResults);
+			// Get session or timeout
+			Thread connect = new Thread() {
+				@Override
+				public void run() {
+					try {
+						session = ws.initComponentSearch(queryString, username,
+								password, numResults);
+					} catch (IOException_Exception e) {
+						CrashReporter.reportException(e,
+								"Problem initializing component search",
+								supplInf);
+					}
+				}
+			};
+			connect.start();
+
+			long startTime = System.nanoTime();
+			long currentTime = 0;
+			// Wait for session or timeout
+			while (connect.isAlive() && session == null) {
+				currentTime = System.nanoTime();
+				if ((currentTime - startTime) > TIMEOUT * 1000) {
+					session = "error: Connection timed out.";
+				}
+				if (monitor.isCanceled()) {
+					connect.interrupt();
+					session = "error: Connection cancelled by user request.";
+				}
+				Thread.sleep(1000);
+			}
+
+			if (session.equals("error: Connection timed out.")) {
+				throw new TimeoutException("Connection to server timed out.");
+			}
 
 			// Show error message if session is null
 			if (session == null) {
 				notifySearchEventListeners(SearchEvent.ERROR);
+				done();
 				return Status.CANCEL_STATUS;
 			}
 
 			// Check for error message from server
 			if (session.toLowerCase().startsWith("error:")) {
-				logger.debug("Server said: " + session);
-				CrashReporter.reportException(new Exception("Server Error"),
-						session, supplInf);
+				logger.debug("Server reported " + session);
 				notifySearchEventListeners(SearchEvent.ERROR);
-				return Status.CANCEL_STATUS;
+				done();
+				throw new ConnectException("Server reported " + session);
 			}
 
 			result.setSessionId(session);
@@ -91,6 +127,7 @@ public class StandardSearch extends Search {
 
 			if (ws.isLoginFailed()) {
 				notifySearchEventListeners(SearchEvent.INVALID_USER);
+				done();
 				return Status.CANCEL_STATUS;
 			}
 
@@ -117,6 +154,7 @@ public class StandardSearch extends Search {
 				if (monitor.isCanceled()) {
 					logger.debug("Enable searching again.");
 					notifySearchEventListeners(SearchEvent.CANCELLED);
+					done();
 					return Status.CANCEL_STATUS;
 				}
 				setProperty("eta", Long.toString(ws.getTimeLeft()));
@@ -154,6 +192,7 @@ public class StandardSearch extends Search {
 					if (monitor.isCanceled()) {
 						logger.debug("Enable searching again.");
 						notifySearchEventListeners(SearchEvent.CANCELLED);
+						done();
 						return Status.CANCEL_STATUS;
 					}
 				}
@@ -166,6 +205,7 @@ public class StandardSearch extends Search {
 				} catch (InterruptedException e) {
 					CrashReporter.reportException(e, supplInf);
 					notifySearchEventListeners(SearchEvent.CANCELLED);
+					done();
 					return Status.CANCEL_STATUS;
 				}
 			}
@@ -188,17 +228,20 @@ public class StandardSearch extends Search {
 				if (monitor.isCanceled()) {
 					logger.debug("Enable searching again.");
 					notifySearchEventListeners(SearchEvent.CANCELLED);
+					done();
 					return Status.CANCEL_STATUS;
 				}
 			}
 			notifySearchEventListeners(SearchEvent.RESULT_ADDED);
 		} catch (Throwable e) {
-			CrashReporter.reportException(e, supplInf);
+			CrashReporter.reportException(e, "Session " + session, supplInf);
 			logger.debug("Problem during search: " + e.toString());
 			notifySearchEventListeners(SearchEvent.SERVERERROR);
+			done();
 			return Status.CANCEL_STATUS;
 		}
 		notifySearchEventListeners(SearchEvent.FINISHED);
+		done();
 		return Status.OK_STATUS;
 	}
 

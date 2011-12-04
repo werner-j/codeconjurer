@@ -42,6 +42,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(PreferenceConstants.P_FORMAT_ON_INSERT, true);
 		store.setDefault(PreferenceConstants.P_UDC, true);
 		store.setDefault(PreferenceConstants.P_CRASH_REPORTING, true);
+		store.setDefault(PreferenceConstants.P_SHOW_ADAPTER, false);
 	}
 
 }

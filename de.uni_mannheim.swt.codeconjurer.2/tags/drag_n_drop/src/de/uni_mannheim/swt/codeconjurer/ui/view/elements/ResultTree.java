@@ -50,38 +50,66 @@ public class ResultTree {
 	private ResultContentProvider resultContentProvider;
 	private ResultLabelProvider resultLabelProvider;
 
+	private Composite parent;
+
+	private TreeColumn colTested;
+
 	/**
 	 * Creates a new ResultTree object
 	 * 
 	 * @param parent
 	 * @param style
 	 */
-	public ResultTree(Composite parent, int style,
-			ISelectionChangedListener listener) {
+	public ResultTree(Composite parent) {
+		this.parent = parent;
+		createTree(false);
+	}
+
+	/**
+	 * Set a listener that is notified when the selection changes
+	 * 
+	 * @param listener
+	 */
+	public void setListener(ISelectionChangedListener listener) {
+		treeViewer.addSelectionChangedListener(listener);
+	}
+
+	/**
+	 * Create the tree for the search
+	 * 
+	 * @param showJunitRow
+	 */
+	private void createTree(boolean showJunitRow) {
 		tree = new Tree(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		tree.setHeaderVisible(true);
 
 		TreeColumn colResource = new TreeColumn(tree, SWT.LEFT);
 		colResource.setText("Resource");
-		colResource.setWidth(200);
+		colResource.setWidth(180);
 		colResource.setMoveable(true);
 		colResource.setToolTipText("Shows the retrieved components in the "
 				+ "order provided by the merobase server.");
 
 		TreeColumn colLicense = new TreeColumn(tree, SWT.LEFT);
 		colLicense.setText("License");
-		colLicense.setWidth(100);
+		colLicense.setWidth(120);
 		colLicense.setMoveable(true);
 		colLicense
 				.setToolTipText("The resource's license or 'no license' if not parseable / unknown license.");
 
-		TreeColumn colTested = new TreeColumn(tree, SWT.FILL);
+		colTested = new TreeColumn(tree, SWT.LEFT);
 		colTested.setText("JUnit");
-//		colTested.setWidth(75);
+		colTested.setWidth(80);
 		colTested.setMoveable(true);
 		colTested
-				.setToolTipText("This column will be coloured green, if the artifact passed a server-side "
-						+ "JUnit test during a test-driven search.");
+				.setToolTipText("Provides information on the test invocation result during test-driven searches.");
+		if (showJunitRow) {
+			colTested.setWidth(80);
+			colTested.setResizable(true);
+		} else {
+			colTested.setWidth(0);
+			colTested.setResizable(false);
+		}
 
 		treeViewer = new TreeViewer(tree);
 		treeViewer.setUseHashlookup(true);
@@ -90,8 +118,6 @@ public class ResultTree {
 		treeViewer.setContentProvider(resultContentProvider);
 		treeViewer.setLabelProvider(resultLabelProvider);
 		treeViewer.setInput(CodeConjurer.getInstance().getActiveEditorSearch());
-
-		treeViewer.addSelectionChangedListener(listener);
 
 		// Enable Drag & Drop Support
 		int ops = DND.DROP_COPY | DND.DROP_MOVE;
@@ -139,6 +165,16 @@ public class ResultTree {
 						// If there is no input we are finished.
 						if (newInput == null) {
 							return;
+						} else {
+							// Create tree and show test result row if a test
+							// driven search was performed
+							if (newInput.getKind() != Search.TEST_DRIVEN_SEARCH) {
+								colTested.setWidth(0);
+								colTested.setResizable(false);
+							} else {
+								colTested.setWidth(80);
+								colTested.setResizable(true);
+							}
 						}
 						try {
 							if (selection != null && selection.length > 0) {

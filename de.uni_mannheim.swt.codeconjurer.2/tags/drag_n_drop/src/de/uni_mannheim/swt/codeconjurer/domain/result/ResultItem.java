@@ -14,8 +14,10 @@ package de.uni_mannheim.swt.codeconjurer.domain.result;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
@@ -50,7 +52,7 @@ public class ResultItem {
 	 * @param shortUrl
 	 * @param source
 	 */
-	public ResultItem(ResultBean rb) {
+	public ResultItem(ResultBean rb, int searchKind) {
 		properties.put(ResultProperty.SHORT_URL, rb.getShortUrl());
 		properties.put(ResultProperty.NAME, rb.getName());
 		properties.put(ResultProperty.EXECUTABILITY, rb.getExecutability()
@@ -59,6 +61,7 @@ public class ResultItem {
 		properties.put(ResultProperty.LICENSE_DESCRIPTION,
 				rb.getLicenseDescription());
 		properties.put(ResultProperty.TEST_RESULT, rb.getTestResult());
+		setSearchKind(searchKind);
 		logger.debug("ResultItem created");
 	}
 
@@ -73,6 +76,16 @@ public class ResultItem {
 	}
 
 	/**
+	 * Set a property value for this result item
+	 * 
+	 * @param property
+	 * @param value
+	 */
+	public void setSearchKind(int kind) {
+		properties.put(ResultProperty.SEARCH_KIND, String.valueOf(kind));
+	}
+
+	/**
 	 * Store the source code of this item
 	 * 
 	 * @param source
@@ -82,6 +95,9 @@ public class ResultItem {
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setSource(source.toCharArray());
+		Map<?, ?> options = JavaCore.getOptions();
+		JavaCore.setComplianceOptions(JavaCore.VERSION_1_6, options);
+		parser.setCompilerOptions(options);
 		try {
 			resultCompilationUnit = (CompilationUnit) parser.createAST(null);
 		} catch (Throwable e) {

@@ -56,6 +56,7 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 	 * editor knows how to save and restore itself.
 	 */
 	public void createFieldEditors() {
+		addField(new LabelFieldEditor("", getFieldEditorParent()));
 		addField(new StringFieldEditor(PreferenceConstants.P_SERVER,
 				"&Servername:", getFieldEditorParent()));
 		addField(new StringFieldEditor(PreferenceConstants.P_USERNAME,

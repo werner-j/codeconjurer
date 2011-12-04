@@ -35,7 +35,11 @@ public abstract class Search extends Job {
 	public final static int STANDARD_SEARCH = 1;
 	public final static int TEST_DRIVEN_SEARCH = 2;
 
+	protected final static int TIMEOUT = 30000;
+
 	protected int kind;
+
+	protected long startTime, endTime;
 
 	protected ArrayList<SearchEventListener> listeners = new ArrayList<SearchEventListener>();
 
@@ -57,8 +61,9 @@ public abstract class Search extends Job {
 		super(name);
 		this.query = query;
 		this.editor = editor;
-		this.result = new Result();
+		this.result = new Result(kind);
 		this.kind = kind;
+		startTime = System.nanoTime();
 	}
 
 	/**
@@ -107,7 +112,12 @@ public abstract class Search extends Job {
 		}
 	}
 
+	/**
+	 * Call this before returning the status and finishing the job
+	 */
 	protected void done() {
+		logger.debug("Job done...");
+		endTime = System.nanoTime();
 		finished = true;
 	}
 
@@ -151,9 +161,17 @@ public abstract class Search extends Job {
 		return Integer.parseInt(properties.get(name));
 	}
 
+	/**
+	 * Returns the duration of this search
+	 * 
+	 * @return
+	 */
+	public long getDuration() {
+		return (endTime > 0 ? endTime : System.nanoTime()) - startTime;
+	}
+
 	@Override
 	protected void canceling() {
-		super.canceling();
 		logger.debug("Cancelling Search Job");
 		Thread.currentThread().interrupt();
 	}

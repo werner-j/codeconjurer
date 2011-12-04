@@ -62,6 +62,9 @@ public class CrashReporter {
 	 */
 	public static boolean reportException(Throwable ex, String cause,
 			HashMap<String, String> suppl) {
+		if (suppl == null) {
+			suppl = new HashMap<String, String>();
+		}
 		suppl.put("Cause", cause);
 		return reportException(ex, suppl);
 	}

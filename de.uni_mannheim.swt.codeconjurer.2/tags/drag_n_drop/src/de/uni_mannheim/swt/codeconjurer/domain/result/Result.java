@@ -45,11 +45,14 @@ public class Result extends Observable {
 
 	private Calendar creation;
 
+	private int kind;
+
 	/**
 	 * Default Constructor
 	 */
-	public Result() {
+	public Result(int kind) {
 		super();
+		this.kind = kind;
 		creation = Calendar.getInstance(Locale.getDefault());
 		creation.setTimeInMillis(System.currentTimeMillis());
 	}
@@ -72,7 +75,7 @@ public class Result extends Observable {
 	 */
 	public void addResultList(ArrayList<ResultBean> results) {
 		for (ResultBean result : results) {
-			ResultItem resultItem = new ResultItem(result);
+			ResultItem resultItem = new ResultItem(result, kind);
 			resultItem.setQuery(query);
 			resultItem.setSearchId(sessionId);
 			resultItems.put(result.getShortUrl(), resultItem);
@@ -93,7 +96,7 @@ public class Result extends Observable {
 		boolean newResult = false;
 		for (ResultBean result : results) {
 			if (!resultItems.containsKey(result.getShortUrl())) {
-				ResultItem resultItem = new ResultItem(result);
+				ResultItem resultItem = new ResultItem(result, kind);
 				resultItem.setQuery(query);
 				resultItem.setSearchId(sessionId);
 				resultItems.put(result.getShortUrl(), resultItem);
@@ -117,7 +120,7 @@ public class Result extends Observable {
 	public void setResultList(ArrayList<ResultBean> results) {
 		resultItems = new LinkedHashMap<String, ResultItem>();
 		for (ResultBean result : results) {
-			ResultItem resultItem = new ResultItem(result);
+			ResultItem resultItem = new ResultItem(result, kind);
 			resultItem.setQuery(query);
 			resultItem.setSearchId(sessionId);
 			resultItems.put(result.getShortUrl(), resultItem);

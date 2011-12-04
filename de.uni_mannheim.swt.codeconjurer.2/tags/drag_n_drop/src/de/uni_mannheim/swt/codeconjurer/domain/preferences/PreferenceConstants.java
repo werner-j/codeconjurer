@@ -41,4 +41,6 @@ public class PreferenceConstants {
 
 	public static final String P_PLATFORM_VERSION = "eclipseVersion";
 
+	public static final String P_SHOW_ADAPTER = "showAdapter";
+
 }

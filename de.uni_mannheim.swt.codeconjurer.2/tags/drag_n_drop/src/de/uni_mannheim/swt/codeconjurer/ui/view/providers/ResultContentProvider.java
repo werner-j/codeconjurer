@@ -18,6 +18,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -113,6 +114,34 @@ public class ResultContentProvider implements ITreeContentProvider {
 			}
 			return methods.toArray();
 		}
+		if (element.getNodeType() == ASTNode.ENUM_DECLARATION) {
+			for (Object declaration : ((EnumDeclaration) element)
+					.bodyDeclarations()) {
+				if (declaration instanceof MethodDeclaration) {
+					MethodDeclaration method = (MethodDeclaration) declaration;
+					// Copy properties from class to methods
+					Set<?> properties = element.properties().keySet();
+					for (String property : (String[]) properties
+							.toArray(new String[element.properties().size()])) {
+						method.setProperty(property,
+								element.getProperty(property));
+					}
+					// Set a unique identifier (required for DND)
+					String sign = "" + method.getReturnType2()
+							+ method.getName();
+					for (Object p : method.parameters()) {
+						sign += p.toString();
+					}
+					// Replace the copied parent's URI from above with a new URI
+					// extended with the signature of the child and a mark
+					method.setProperty(ResultProperty.URI.name(),
+							method.getProperty(ResultProperty.URI.name())
+									+ CodeConjurer.URI_DELIMITER + sign);
+					methods.add(method);
+				}
+			}
+			return methods.toArray();
+		}
 		return null;
 	}
 
@@ -140,10 +169,17 @@ public class ResultContentProvider implements ITreeContentProvider {
 	public boolean hasChildren(Object parentElement) {
 		BodyDeclaration element = (BodyDeclaration) parentElement;
 
-		// Only Classes may have children
-		if (element.getNodeType() == ASTNode.TYPE_DECLARATION)
-			if (((TypeDeclaration) element).getMethods().length > 0)
+		// Only AbstractTypeDeclarations may have children
+		if (element.getNodeType() == ASTNode.TYPE_DECLARATION) {
+			if (((TypeDeclaration) element).getMethods().length > 0) {
 				return true;
+			}
+		}
+		if (element.getNodeType() == ASTNode.ENUM_DECLARATION) {
+			if (((EnumDeclaration) element).bodyDeclarations().size() > 0) {
+				return true;
+			}
+		}
 
 		return false;
 	}

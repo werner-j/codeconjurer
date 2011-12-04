@@ -87,12 +87,13 @@ public class ResultTreeDragListener implements DragSourceListener {
 					event.dataType)) {
 				// For a PluginTransfer, we transmit the URI of the element.
 				// The DropListener is responsible for handling this.
-				String uri = (String) selectedElement
-						.getProperty(ResultProperty.URI.name());
-				event.data = new PluginTransferData(
-						"de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction",
-						(uri.getBytes()));
-				logger.debug("PluginTransfer triggered");
+				Object uri = selectedElement.getProperty(ResultProperty.URI
+						.name());
+				if (uri != null)
+					event.data = new PluginTransferData(
+							"de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction",
+							(((String) uri).getBytes()));
+				logger.debug("PluginTransfer triggered for " + uri);
 			}
 		} catch (Exception e) {
 			CrashReporter.reportException(e);

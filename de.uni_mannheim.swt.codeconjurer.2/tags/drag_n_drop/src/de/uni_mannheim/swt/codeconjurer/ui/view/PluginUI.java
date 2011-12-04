@@ -33,6 +33,7 @@ public class PluginUI {
 	private static Logger logger = Logger.getLogger(PluginUI.class);
 
 	private static IWorkbenchWindow window;
+	private static ResultView resultView;
 
 	private static ArrayList<UIListener> listeners = new ArrayList<UIListener>();
 
@@ -72,14 +73,16 @@ public class PluginUI {
 					public void run() {
 						try {
 							if (inBackground) {
-								PluginUI.getWindow()
+								resultView = (ResultView) PluginUI
+										.getWindow()
 										.getActivePage()
 										.showView(
 												"de.uni_mannheim.swt.codeconjurer.views.ResultView",
 												null,
 												IWorkbenchPage.VIEW_VISIBLE);
 							} else {
-								PluginUI.getWindow()
+								resultView = (ResultView) PluginUI
+										.getWindow()
 										.getActivePage()
 										.showView(
 												"de.uni_mannheim.swt.codeconjurer.views.ResultView");
@@ -91,6 +94,19 @@ public class PluginUI {
 						}
 					}
 				});
+	}
+
+	/**
+	 * Returns the instance of the result view
+	 * 
+	 * @return
+	 */
+	public static ResultView getResultView() {
+		if (resultView == null) {
+			resultView = (ResultView) PluginUI.getWindow().getActivePage()
+					.findViewReference("").getView(false);
+		}
+		return resultView;
 	}
 
 	/**

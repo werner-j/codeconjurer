@@ -66,6 +66,23 @@ public class PluginDropActionDelegate implements IDropActionDelegate {
 	}
 
 	/**
+	 * Checks if the provided source is a method declaration and the target is a
+	 * CompilationUnit. If checking is successful, the method is inserted into
+	 * the class.
+	 * 
+	 * @param source
+	 * @param target
+	 * @return
+	 * @throws JavaModelException
+	 * @throws Exception
+	 */
+	// private boolean insertMethodDeclaration(Object source, Object target)
+	// throws JavaModelException, Exception {
+	// // TODO Auto-generated method stub
+	// return false;
+	// }
+
+	/**
 	 * Checks if the provided source is a type declaration and the target is an
 	 * PackageFragment and inserts the type into the package.
 	 * 
@@ -78,8 +95,8 @@ public class PluginDropActionDelegate implements IDropActionDelegate {
 	private boolean insertTypeDeclaration(Object source, IPackageFragment target)
 			throws JavaModelException, Exception {
 		// To make the UI stay responsive, we do this in a job
-		PackageFragmentDropJob dropJob = new PackageFragmentDropJob((byte[]) source,
-				(IPackageFragment) target);
+		PackageFragmentDropJob dropJob = new PackageFragmentDropJob(
+				(byte[]) source, (IPackageFragment) target);
 		dropJob.schedule();
 		return true;
 	}

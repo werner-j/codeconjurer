@@ -14,6 +14,7 @@ package de.uni_mannheim.swt.codeconjurer.ui.view.providers;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.ui.ISharedImages;
@@ -49,7 +50,11 @@ public class ResultLabelProvider extends LabelProvider implements
 		if (columnIndex == 0) {
 			if (element.getNodeType() == ASTNode.TYPE_DECLARATION) {
 				img = JavaUI.getSharedImages().getImage(
-						ISharedImages.IMG_OBJS_CLASS);
+						ISharedImages.IMG_OBJS_CLASS_DEFAULT);
+			}
+			if (element.getNodeType() == ASTNode.ENUM_DECLARATION) {
+				img = JavaUI.getSharedImages().getImage(
+						ISharedImages.IMG_OBJS_ENUM);
 			}
 			if (element.getNodeType() == ASTNode.METHOD_DECLARATION) {
 				MethodDeclaration method = (MethodDeclaration) element;
@@ -86,8 +91,9 @@ public class ResultLabelProvider extends LabelProvider implements
 						.name())).equals(Executability.TESTED.value())) {
 					// Set color to green if no adapter is necessary, yellow
 					// otherwise
-					if (((String) element.getProperty(ResultProperty.TEST_RESULT
-							.name())).startsWith("// No adapter necessary")) {
+					if (((String) element
+							.getProperty(ResultProperty.TEST_RESULT.name()))
+							.startsWith("// No adapter necessary")) {
 						return "TESTED";
 					} else {
 						return "ADAPTED";
@@ -96,6 +102,11 @@ public class ResultLabelProvider extends LabelProvider implements
 					return "FAILED";
 				}
 			}
+		}
+		if (element.getNodeType() == ASTNode.ENUM_DECLARATION
+				&& columnIndex == 0) {
+			return ((EnumDeclaration) element).getName()
+					.getFullyQualifiedName();
 		}
 		if (element.getNodeType() == ASTNode.METHOD_DECLARATION
 				&& columnIndex == 0) {
@@ -122,7 +133,8 @@ public class ResultLabelProvider extends LabelProvider implements
 	public Color getBackground(Object item, int columnIndex) {
 		BodyDeclaration element = (BodyDeclaration) item;
 		Color color = Display.getCurrent().getSystemColor(SWT.COLOR_WHITE);
-		if (element.getNodeType() == ASTNode.TYPE_DECLARATION) {
+		if (element.getNodeType() == ASTNode.TYPE_DECLARATION
+				|| element.getNodeType() == ASTNode.ENUM_DECLARATION) {
 			color = Display.getCurrent().getSystemColor(
 					SWT.COLOR_WIDGET_LIGHT_SHADOW);
 		}

@@ -16,10 +16,9 @@ import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.DND;
@@ -47,6 +46,7 @@ import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
 import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 import de.uni_mannheim.swt.codeconjurer.ui.dnd.JavaEditorDropListener;
+import de.uni_mannheim.swt.codeconjurer.ui.listener.TreeSelectionChangedListener;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
 import de.uni_mannheim.swt.codeconjurer.ui.listener.UIListener;
 import de.uni_mannheim.swt.codeconjurer.ui.view.elements.CodePreview;
@@ -90,11 +90,11 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		layout.marginBottom = 0;
 		layout.numColumns = 1;
 		top.setLayout(layout);
-		Composite banner = new Composite(top, SWT.NONE);
-		banner.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL,
+		Composite statusBar = new Composite(top, SWT.NONE);
+		statusBar.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL,
 				GridData.VERTICAL_ALIGN_BEGINNING, true, false));
-		banner.setLayout(layout);
-		statusLabel = new Label(banner, SWT.NONE);
+		statusBar.setLayout(layout);
+		statusLabel = new Label(statusBar, SWT.NONE);
 		statusLabel.setText("Code Conjurer");
 
 		/* SashForm for content */
@@ -104,40 +104,18 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		sashForm.setOrientation(SWT.HORIZONTAL);
 		sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		ISelectionChangedListener listener = new ISelectionChangedListener() {
-			public void selectionChanged(SelectionChangedEvent event) {
-				IStructuredSelection selection = (IStructuredSelection) event
-						.getSelection();
-				BodyDeclaration selected = (BodyDeclaration) selection
-						.getFirstElement();
-
-				// Show the source code of the selection
-				if (preview != null) {
-					if (selected != null) {
-						String previewCode = "";
-						if (selected.getNodeType() == BodyDeclaration.TYPE_DECLARATION) {
-							previewCode = (String) selected
-									.getProperty(ResultProperty.RAW_SOURCE
-											.name());
-						} else {
-							previewCode = selected.toString();
-						}
-						preview.setCode(previewCode);
-					} else {
-						preview.setCode("");
-					}
-				}
-
-			}
-		};
-
-		resultTree = new ResultTree(sashForm, SWT.BORDER, listener);
-
-		preview = new CodePreview(sashForm);
+		resultTree = new ResultTree(sashForm);
 
 		if (preview != null) {
 			sashForm.setWeights(new int[] { 2, 3 });
 		}
+
+		preview = new CodePreview(sashForm);
+
+		ISelectionChangedListener listener = new TreeSelectionChangedListener(
+				preview);
+
+		resultTree.setListener(listener);
 
 		CodeConjurer.getInstance().addSearchEventListener(this);
 		getSite().getPage().addPartListener(this);
@@ -165,9 +143,9 @@ public class ResultView extends ViewPart implements SearchEventListener,
 											.getShell(),
 									"Code Conjurer First Start",
 									"Please set a username and password in Eclipse->Preferences->Code Conjurer. \r\n\r\n"
-											+ "Code Conjurer collects crash and usage data for "
+											+ "Code Conjurer collects anonymous crash and usage data for "
 											+ "the developers to improve its "
-											+ "reliability and results. You can turn off that "
+											+ "reliability and results. You can turn off this debug "
 											+ "feature in the preferences dialog.");
 				}
 			});
@@ -179,6 +157,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	 */
 	private void createToolbarActions() {
 		IActionBars bars = getViewSite().getActionBars();
+
 		Action collapseAction = new Action() {
 			@Override
 			public void run() {
@@ -201,28 +180,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		expandAction.setImageDescriptor(Activator
 				.getImageDescriptor("icons/expand.png"));
 		bars.getToolBarManager().add(expandAction);
-		Action performSearchAction = new Action() {
-			@Override
-			public void run() {
-				logger.debug("Perform a search");
-				CodeConjurer.getInstance().search(false);
-			}
-		};
-		performSearchAction.setText("Search Reusable Code");
-		performSearchAction.setImageDescriptor(Activator
-				.getImageDescriptor("icons/code_conjurer_m.png"));
-		bars.getToolBarManager().add(performSearchAction);
-		Action refreshAction = new Action() {
-			@Override
-			public void run() {
-				logger.debug("Refresh View");
-				onEvent(UIEvent.REFRESH);
-			}
-		};
-		refreshAction.setText("Refresh Result View");
-		refreshAction.setImageDescriptor(Activator
-				.getImageDescriptor("icons/refresh.png"));
-		bars.getToolBarManager().add(refreshAction);
+
 	}
 
 	@Override
@@ -239,29 +197,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 					.asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							resultTree.refresh();
-							TreeItem selection = resultTree
-									.getSelectedElement();
-							if (selection != null) {
-								BodyDeclaration selected = (BodyDeclaration) selection
-										.getData();
-								// Show the source code of the selection
-								if (preview != null) {
-									if (selected != null) {
-										String previewCode = "";
-										if (selected.getNodeType() == BodyDeclaration.TYPE_DECLARATION) {
-											previewCode = (String) selected
-													.getProperty(ResultProperty.RAW_SOURCE
-															.name());
-										} else {
-											previewCode = selected.toString();
-										}
-										preview.setCode(previewCode);
-									} else {
-										preview.setCode("");
-									}
-								}
-							}
+							setPreview();
 							// Indicate that something has happened and add a
 							// star to the view's title
 							String name = view.getPartName();
@@ -279,29 +215,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 					.asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							resultTree.refresh();
-							TreeItem selection = resultTree
-									.getSelectedElement();
-							if (selection != null) {
-								BodyDeclaration selected = (BodyDeclaration) selection
-										.getData();
-								// Show the source code of the selection
-								if (preview != null) {
-									if (selected != null) {
-										String previewCode = "";
-										if (selected.getNodeType() == BodyDeclaration.TYPE_DECLARATION) {
-											previewCode = (String) selected
-													.getProperty(ResultProperty.RAW_SOURCE
-															.name());
-										} else {
-											previewCode = selected.toString();
-										}
-										preview.setCode(previewCode);
-									} else {
-										preview.setCode("");
-									}
-								}
-							}
+							setPreview();
 						}
 					});
 		}
@@ -320,6 +234,48 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	}
 
 	/**
+	 * Set the preview window to the current selection. If adapter modus is on,
+	 * the adapter is shown.
+	 */
+	protected void setPreview() {
+		resultTree.refresh();
+		TreeItem selection = resultTree.getSelectedElement();
+		if (selection != null) {
+			BodyDeclaration selected = (BodyDeclaration) selection.getData();
+			// Show the source code of the selection
+			if (preview != null) {
+				if (selected != null) {
+					String previewCode = "";
+					String adapterCode = "";
+					if (selected.getNodeType() == BodyDeclaration.TYPE_DECLARATION) {
+						previewCode = (String) selected
+								.getProperty(ResultProperty.RAW_SOURCE.name());
+						adapterCode = (String) selected
+								.getProperty(ResultProperty.TEST_RESULT.name());
+					} else {
+						previewCode = selected.toString();
+						adapterCode = "// Adapter not available";
+					}
+					boolean showAdapter = Activator.getDefault()
+							.getPreferenceStore()
+							.getBoolean(PreferenceConstants.P_SHOW_ADAPTER);
+					String searchKind = selected.getProperty(
+							ResultProperty.SEARCH_KIND.name()).toString();
+					if (showAdapter
+							&& searchKind.equals(String
+									.valueOf(Search.TEST_DRIVEN_SEARCH))) {
+						preview.setCode(adapterCode);
+					} else {
+						preview.setCode(previewCode);
+					}
+				} else {
+					preview.setCode("");
+				}
+			}
+		}
+	}
+
+	/**
 	 * This method is used to update the view and the status line
 	 * 
 	 * @param event
@@ -334,29 +290,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 					.asyncExec(new Runnable() {
 						@Override
 						public void run() {
-							resultTree.refresh();
-							TreeItem selection = resultTree
-									.getSelectedElement();
-							if (selection != null) {
-								BodyDeclaration selected = (BodyDeclaration) selection
-										.getData();
-								// Show the source code of the selection
-								if (preview != null) {
-									if (selected != null) {
-										String previewCode = "";
-										if (selected.getNodeType() == BodyDeclaration.TYPE_DECLARATION) {
-											previewCode = (String) selected
-													.getProperty(ResultProperty.RAW_SOURCE
-															.name());
-										} else {
-											previewCode = selected.toString();
-										}
-										preview.setCode(previewCode);
-									} else {
-										preview.setCode("");
-									}
-								}
-							}
+							setPreview();
 							// Indicate that something has happened and add a
 							// star to the view's title
 							String name = view.getPartName();
@@ -378,30 +312,31 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		if (partRef != null) {
 			String id = partRef.getId();
 			if (id.equals("org.eclipse.jdt.ui.CompilationUnitEditor")) {
-				IEditorPart editor = PluginUI.getActiveEditor();
-				Control ctrl = (Control) editor.getAdapter(Control.class);
-				DropTarget dropTarget = (DropTarget) ctrl
-						.getData(DND.DROP_TARGET_KEY);
-				if (dropTarget != null) {
-					try {
-						// Add drop listener to editor
-						logger.debug("Add drop listener to "
-								+ dropTarget.toString());
-						dropTarget
-								.addDropListener(new JavaEditorDropListener());
+				try {
+					IEditorPart editor = PluginUI.getActiveEditor();
+					Control ctrl = (Control) editor.getAdapter(Control.class);
+					DropTarget dropTarget = (DropTarget) ctrl
+							.getData(DND.DROP_TARGET_KEY);
+					if (dropTarget != null) {
+						try {
+							// Add drop listener to editor
+							logger.debug("Add drop listener to "
+									+ dropTarget.toString());
+							dropTarget
+									.addDropListener(new JavaEditorDropListener());
 
-					} catch (Exception e) {
-						CrashReporter.reportException(e);
-						logger.debug("Could not register drop service: "
-								+ e.getMessage());
-						e.printStackTrace();
+						} catch (Exception e) {
+							CrashReporter.reportException(e);
+							logger.debug("Could not register drop service: "
+									+ e.getMessage());
+							e.printStackTrace();
+						}
 					}
+				} catch (Exception e) {
+					CrashReporter.reportException(e);
 				}
 				updateStatus();
-				resultTree.refresh();
-				TreeItem selection = resultTree.getSelectedElement();
-				if (selection != null)
-					preview.setCode(selection.getData().toString());
+				setPreview();
 			}
 		}
 	}
@@ -484,62 +419,92 @@ public class ResultView extends ViewPart implements SearchEventListener,
 				boolean noPassword = Activator.getDefault()
 						.getPreferenceStore()
 						.getString(PreferenceConstants.P_PASSWORD).equals("");
-				String message = "";
+				StringBuilder message = new StringBuilder();
 				if (msg.equals("")) {
 					if (noServer || noUsername || noPassword) {
-						message = "Please set up preferences first. Go to Eclipse -> Preferences -> Code Conjurer.";
+						message.append("Please set up preferences first. Go to Eclipse -> Preferences -> Code Conjurer.");
 					} else {
 						Search search = CodeConjurer.getInstance()
 								.getActiveEditorSearch();
+						ActionContributionItem showAdapterAction = (ActionContributionItem) getViewSite()
+								.getActionBars()
+								.getToolBarManager()
+								.find("de.uni_mannheim.swt.codeconjurer.showAdapterAction");
 
 						if (search != null) {
 							Result result = null;
 							int results = 0;
 							switch (search.getKind()) {
 							case Search.STANDARD_SEARCH:
+								showAdapterAction.getAction().setEnabled(false);
 								result = search.getSearchResult();
 								results = result.getResultItems().length;
 								if (results > 0) {
-									message = (results
+									message.append(results
 											+ " results found. "
 											+ result.getNumberOfSuccessfullyFetchedSources()
-											+ " items successfully downloaded. :: Result created " + result
-											.getCreationDate());
+											+ " items successfully downloaded. :: Result created "
+											+ result.getCreationDate());
 								}
 								break;
 
 							case Search.TEST_DRIVEN_SEARCH:
+								showAdapterAction.getAction().setEnabled(true);
 								result = search.getSearchResult();
 								int passes = result
 										.getNumberOfSuccessfulTests();
+								long time = search.getDuration();
+								String duration;
+								if (time / Math.pow(10, 9) < 120) {
+									duration = String.valueOf(time
+											/ Math.pow(10, 9));
+									duration = duration.substring(0,
+											duration.indexOf("."));
+									duration += " s";
+								} else {
+									duration = String.valueOf((time / Math.pow(
+											10, 9)) / 60);
+									duration = duration.substring(0,
+											duration.indexOf(".") + 2);
+									duration += " min";
+								}
 								results = result.getResultItems().length;
 								if (search.getState() == Job.RUNNING) {
-									message = "Testing in progress... ";
+									message.append("Testing in progress");
+									message.append(" :: Time elapsed "
+											+ duration);
 								}
 								if (passes > 0) {
-									message += (passes
+									message.append(" :: "
+											+ passes
 											+ " of "
 											+ results
 											+ " candidates passed test. "
 											+ result.getNumberOfSuccessfullyFetchedSources()
-											+ " items successfully downloaded. :: Result created " + result
-											.getCreationDate());
+											+ " items successfully downloaded.");
+									if (search.isFinished()) {
+										message.append(" :: Result created "
+												+ result.getCreationDate());
+										message.append(" :: Result created in "
+												+ duration);
+									}
 								}
 								break;
 
 							default:
-								message = "No results.";
+								message.append("No results.");
 								break;
 							}
 						} else {
-							message = ("No search results available.");
+							showAdapterAction.getAction().setEnabled(false);
+							message.append("No search results available.");
 						}
 					}
 				} else {
-					message = msg;
+					message.append(msg);
 				}
 				if (statusLabel != null && !statusLabel.isDisposed()) {
-					statusLabel.setText("[Code Conjurer] " + message);
+					statusLabel.setText("[Code Conjurer] " + message.toString());
 					statusLabel.pack();
 					statusLabel.getParent().pack();
 				}
@@ -547,4 +512,5 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		});
 		logger.debug("Status refreshed!");
 	}
+
 }

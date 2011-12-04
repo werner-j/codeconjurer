@@ -78,6 +78,7 @@
                minimized="false"
                relationship="stack"
                relative="org.eclipse.pde.runtime.LogView"
+               showTitle="true"
                standalone="false"
                visible="true">
          </view>
@@ -116,6 +117,45 @@
             class="de.uni_mannheim.swt.codeconjurer.ui.dnd.PluginDropActionDelegate"
             id="de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction">
       </action>
+   </extension>
+   <extension
+         point="org.eclipse.ui.viewActions">
+      <viewContribution
+            id="de.uni_mannheim.swt.codeconjurer.viewContribution.ResultView"
+            targetID="de.uni_mannheim.swt.codeconjurer.views.ResultView">
+         <menu
+               id="de.uni_mannheim.swt.codeconjurer.views.ResultView.menu"
+               label="%merobase_menu.label">
+         </menu>
+         <action
+               class="de.uni_mannheim.swt.codeconjurer.ui.view.elements.actions.PerformSearchFromViewAction"
+               icon="icons/code_conjurer_m.png"
+               id="de.uni_mannheim.swt.codeconjurer.action2"
+               label="%search.label"
+               mode="FORCE_TEXT"
+               style="push"
+               toolbarPath="de.uni_mannheim.swt.codeconjurer.views.ResultView.toolbar">
+         </action>
+         <action
+               class="de.uni_mannheim.swt.codeconjurer.ui.view.elements.actions.RefreshAction"
+               icon="icons/refresh.png"
+               id="de.uni_mannheim.swt.codeconjurer.action3"
+               label="%refresh.label"
+               style="push"
+               toolbarPath="de.uni_mannheim.swt.codeconjurer.views.ResultView.toolbar"
+               tooltip="Refresh the result tree">
+         </action>
+         <action
+               class="de.uni_mannheim.swt.codeconjurer.ui.view.elements.actions.ShowAdapterAction"
+               icon="icons/adapter.gif"
+               id="de.uni_mannheim.swt.codeconjurer.showAdapterAction"
+               label="%show_adapter.label"
+               menubarPath="de.uni_mannheim.swt.codeconjurer.views.ResultView.menu"
+               style="toggle"
+               toolbarPath="de.uni_mannheim.swt.codeconjurer.views.ResultView.toolbar"
+               tooltip="%show_adapter.tooltip">
+         </action>
+      </viewContribution>
    </extension>
 
 </plugin>
