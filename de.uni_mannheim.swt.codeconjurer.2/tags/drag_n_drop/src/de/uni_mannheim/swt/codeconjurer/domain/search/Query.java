@@ -67,11 +67,14 @@ public class Query {
 	public String getQuery() {
 		String query = "";
 		IType primaryType = typeRoot.findPrimaryType();
+		if (primaryType == null) {
+			return null;
+		}
 		String superclass = "";
 		try {
 			superclass = primaryType.getSuperclassName();
 			if (superclass != null && superclass.equals("TestCase")) {
-				query = /*primaryType.*/getSource()
+				query = /* primaryType. */getSource()
 						+ " // <con>(protocol:cvs OR protocol:svn) original:yes type:class form:source lang:java</con>";
 			} else {
 				query = getMqlQuery(primaryType);

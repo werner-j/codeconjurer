@@ -60,7 +60,11 @@ public class ResultItem {
 		properties.put(ResultProperty.LICENSE, rb.getLicense());
 		properties.put(ResultProperty.LICENSE_DESCRIPTION,
 				rb.getLicenseDescription());
-		properties.put(ResultProperty.TEST_RESULT, rb.getTestResult());
+		String testResult = rb.getTestResult();
+		if (testResult.startsWith("error:")) {
+			testResult = "// No adapter created for candidate.";
+		}
+		properties.put(ResultProperty.TEST_RESULT, testResult);
 		setSearchKind(searchKind);
 		logger.debug("ResultItem created");
 	}

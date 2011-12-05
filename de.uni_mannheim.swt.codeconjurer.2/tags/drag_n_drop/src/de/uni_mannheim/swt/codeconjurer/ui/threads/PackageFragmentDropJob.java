@@ -12,6 +12,8 @@
  */
 package de.uni_mannheim.swt.codeconjurer.ui.threads;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -108,35 +110,55 @@ public class PackageFragmentDropJob extends Job {
 				String sourceCode = (String) selectedElement
 						.getProperty(ResultProperty.RAW_SOURCE.name());
 
-				/* Insert the class first */
-				insertType(pkg, name, sourceCode);
-				monitor.worked(1);
+				/** Indicates if an adapter was created */
+				boolean adapted = false;
 
-				/* Insert the adapter if necessary */
+				/* Insert the adapter if the user wishes */
 				if (Activator.getDefault().getPreferenceStore()
 						.getBoolean(PreferenceConstants.P_SHOW_ADAPTER)) {
 					if (adapterCode != null) {
-						IPackageFragmentRoot pkgRoot = (IPackageFragmentRoot) pkg
-								.getParent();
-						String pkgname = pkg.getElementName();
-						// pkgRoot.open(monitor);
-						IPackageFragment adapterPkg = pkgRoot
-								.createPackageFragment(pkgname + "."
-										+ "adapter", true, monitor);
+						adapterCode = adapterCode
+								.replace(
+										"merobase_auto_generated_package_for_adaptation",
+										pkg.getElementName());
 
+						monitor.subTask("Insert adapter class");
 						// Find out the name of the adapter
 						ASTParser parser = ASTParser.newParser(AST.JLS3);
 						parser.setSource(adapterCode.toCharArray());
 						CompilationUnit astRoot = (CompilationUnit) parser
 								.createAST(null);
-						TypeDeclaration adapterType = (TypeDeclaration) astRoot
-								.types().get(0);
+						List<TypeDeclaration> typeList = astRoot.types();
+						if (typeList != null && typeList.size() > 0) {
+							TypeDeclaration adapterType = (TypeDeclaration) typeList
+									.get(0);
+							insertType(pkg, adapterType.getName().toString(),
+									adapterCode, monitor);
+						}
+						monitor.worked(1);
 
-						insertType(adapterPkg,
-								adapterType.getName().toString(), adapterCode);
+						monitor.subTask("Check for adaptee package");
+						IPackageFragmentRoot pkgRoot = (IPackageFragmentRoot) pkg
+								.getParent();
+						String pkgname = pkg.getElementName();
+						// pkgRoot.open(monitor);
+						IPackageFragment adapteePkg = pkgRoot
+								.createPackageFragment(pkgname + "."
+										+ "adaptee", true, monitor);
+
+						monitor.subTask("Insert adaptee with functionality");
+						/* Insert the adaptee class */
+						insertType(adapteePkg, name, sourceCode, monitor);
+						monitor.worked(1);
+						adapted = true;
 					}
 				}
-				monitor.worked(1);
+
+				// Insert the result without adapter
+				if (!adapted) {
+					insertType(pkg, name, sourceCode, monitor);
+					monitor.worked(1);
+				}
 
 			}
 			if (selectedElement.getNodeType() == BodyDeclaration.METHOD_DECLARATION) {
@@ -210,8 +232,8 @@ public class PackageFragmentDropJob extends Job {
 		return Status.OK_STATUS;
 	}
 
-	private void insertType(IPackageFragment pkg, String name, String sourceCode)
-			throws Exception {
+	private void insertType(IPackageFragment pkg, String name,
+			String sourceCode, final IProgressMonitor monitor) throws Exception {
 		// If a CompilatonUnit with the same name exists and is
 		// opened, we must close it before overwrite.
 		ICompilationUnit icu = pkg.getCompilationUnit(name + ".java");
@@ -223,16 +245,16 @@ public class PackageFragmentDropJob extends Job {
 		final ICompilationUnit icu2 = pkg.createCompilationUnit(name + ".java",
 				sourceCode, Activator.getDefault().getPreferenceStore()
 						.getBoolean(PreferenceConstants.P_OVERWRITE_ON_INSERT),
-				null);
+				monitor);
 
-		icu2.createPackageDeclaration(pkg.getElementName(), null);
+		icu2.createPackageDeclaration(pkg.getElementName(), monitor);
 
 		IFile input = (IFile) icu2.getResource();
 		final IEditorInput editorInput = new FileEditorInput(input);
 		final IEditorDescriptor desc = PlatformUI.getWorkbench()
 				.getEditorRegistry().getDefaultEditor(input.getName());
 
-		PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+		PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -255,12 +277,14 @@ public class PackageFragmentDropJob extends Job {
 								.getEditorSite());
 						format.runOnMultiple(new ICompilationUnit[] { icu2 });
 					}
+					icu2.commitWorkingCopy(true, monitor);
 				} catch (Exception e) {
 					logger.debug(e.toString());
 					CrashReporter.reportException(e);
 				}
 			}
 		});
+		icu2.close();
 	}
 
 }

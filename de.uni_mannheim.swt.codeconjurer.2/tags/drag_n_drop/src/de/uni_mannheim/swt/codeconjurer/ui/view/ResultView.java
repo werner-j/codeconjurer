@@ -453,6 +453,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 								result = search.getSearchResult();
 								int passes = result
 										.getNumberOfSuccessfulTests();
+								int retrieved = result
+										.getNumberOfSuccessfullyFetchedSources();
 								long time = search.getDuration();
 								String duration;
 								if (time / Math.pow(10, 9) < 120) {
@@ -474,13 +476,11 @@ public class ResultView extends ViewPart implements SearchEventListener,
 									message.append(" :: Time elapsed "
 											+ duration);
 								}
-								if (passes > 0) {
-									message.append(" :: "
-											+ passes
-											+ " of "
+								if (retrieved > 0) {
+									message.append(" :: " + passes + " of "
 											+ results
 											+ " candidates passed test. "
-											+ result.getNumberOfSuccessfullyFetchedSources()
+											+ retrieved
 											+ " items successfully downloaded.");
 									if (search.isFinished()) {
 										message.append(" :: Result created "

@@ -63,6 +63,11 @@ public class StandardSearch extends Search {
 			ws = new WSConnection(serverLocation);
 			session = null;
 			final String queryString = query.getQuery();
+			if (query == null) {
+				notifySearchEventListeners(SearchEvent.ERROR);
+				done();
+				return Status.CANCEL_STATUS;
+			}
 			result.setQuery(query);
 			logger.debug("Initialize search for " + numResults
 					+ " components at " + serverLocation + ".");
@@ -90,10 +95,12 @@ public class StandardSearch extends Search {
 
 			long startTime = System.nanoTime();
 			long currentTime = 0;
+			long timediff = 0;
 			// Wait for session or timeout
 			while (connect.isAlive() && session == null) {
 				currentTime = System.nanoTime();
-				if ((currentTime - startTime) > TIMEOUT * 1000) {
+				timediff = currentTime - startTime;
+				if (timediff > TIMEOUT) {
 					session = "error: Connection timed out.";
 				}
 				if (monitor.isCanceled()) {
@@ -102,9 +109,14 @@ public class StandardSearch extends Search {
 				}
 				Thread.sleep(1000);
 			}
+			logger.trace("Start time: " + startTime);
+			logger.trace("Current time: " + currentTime);
+			logger.trace("========================================");
+			logger.trace("Difference: " + timediff);
 
 			if (session.equals("error: Connection timed out.")) {
-				throw new TimeoutException("Connection to server timed out.");
+				throw new TimeoutException("Connection to server timed out: "
+						+ (currentTime - startTime));
 			}
 
 			// Show error message if session is null
