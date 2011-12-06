@@ -33,6 +33,7 @@ import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.TextElement;
+import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.ui.actions.FormatAllAction;
 import org.eclipse.jdt.ui.actions.OrganizeImportsAction;
@@ -133,7 +134,7 @@ public class PackageFragmentDropJob extends Job {
 							TypeDeclaration adapterType = (TypeDeclaration) typeList
 									.get(0);
 							insertType(pkg, adapterType.getName().toString(),
-									adapterCode, monitor);
+									adapterCode, true, monitor);
 						}
 						monitor.worked(1);
 
@@ -148,15 +149,33 @@ public class PackageFragmentDropJob extends Job {
 
 						monitor.subTask("Insert adaptee with functionality");
 						/* Insert the adaptee class */
-						insertType(adapteePkg, name, sourceCode, monitor);
+						insertType(adapteePkg, name, sourceCode, true, monitor);
 						monitor.worked(1);
+
+						logger.debug("Check for interfaces");
+
+						for (Object typeDecO : typeDec.superInterfaceTypes()) {
+							Type tDec = (Type) typeDecO;
+							logger.debug("Implements " + tDec);
+							StringBuilder iface = new StringBuilder("package "
+									+ adapteePkg.getElementName() + ";"
+									+ System.getProperty("line.separator"));
+							iface.append(System.getProperty("line.separator")
+									+ "/** Automatically generated interface dependency */"
+									+ System.getProperty("line.separator"));
+							iface.append("public interface " + tDec + "{}");
+							// The interfaces should not be opened
+							insertType(adapteePkg, tDec.toString(),
+									iface.toString(), false, monitor);
+						}
+
 						adapted = true;
 					}
 				}
 
 				// Insert the result without adapter
 				if (!adapted) {
-					insertType(pkg, name, sourceCode, monitor);
+					insertType(pkg, name, sourceCode, true, monitor);
 					monitor.worked(1);
 				}
 
@@ -232,8 +251,22 @@ public class PackageFragmentDropJob extends Job {
 		return Status.OK_STATUS;
 	}
 
+	/**
+	 * Inserts the provided type into a project. If code beautification and
+	 * import organisation is desired, it must be opened in an editor.
+	 * 
+	 * @param pkg
+	 * @param name
+	 * @param sourceCode
+	 * @param openInEditor
+	 *            should the asset be opened in an editor? Mandatory for code
+	 *            beautification and automatic import management.
+	 * @param monitor
+	 * @throws Exception
+	 */
 	private void insertType(IPackageFragment pkg, String name,
-			String sourceCode, final IProgressMonitor monitor) throws Exception {
+			String sourceCode, boolean openInEditor,
+			final IProgressMonitor monitor) throws Exception {
 		// If a CompilatonUnit with the same name exists and is
 		// opened, we must close it before overwrite.
 		ICompilationUnit icu = pkg.getCompilationUnit(name + ".java");
@@ -249,41 +282,49 @@ public class PackageFragmentDropJob extends Job {
 
 		icu2.createPackageDeclaration(pkg.getElementName(), monitor);
 
-		IFile input = (IFile) icu2.getResource();
-		final IEditorInput editorInput = new FileEditorInput(input);
-		final IEditorDescriptor desc = PlatformUI.getWorkbench()
-				.getEditorRegistry().getDefaultEditor(input.getName());
+		if (openInEditor) {
+			IFile input = (IFile) icu2.getResource();
+			final IEditorInput editorInput = new FileEditorInput(input);
+			final IEditorDescriptor desc = PlatformUI.getWorkbench()
+					.getEditorRegistry().getDefaultEditor(input.getName());
 
-		PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					IEditorPart editor = PlatformUI.getWorkbench()
-							.getActiveWorkbenchWindow().getActivePage()
-							.openEditor(editorInput, desc.getId());
+			PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						IEditorPart editor = PlatformUI.getWorkbench()
+								.getActiveWorkbenchWindow().getActivePage()
+								.openEditor(editorInput, desc.getId());
 
-					// Organize imports if necessary
-					if (Activator.getDefault().getPreferenceStore()
-							.getBoolean(PreferenceConstants.P_ORGANIZE_IMPORTS)) {
-						OrganizeImportsAction organize = new OrganizeImportsAction(
-								editor.getEditorSite());
-						organize.run(icu2);
+						// Organize imports if necessary
+						if (Activator
+								.getDefault()
+								.getPreferenceStore()
+								.getBoolean(
+										PreferenceConstants.P_ORGANIZE_IMPORTS)) {
+							OrganizeImportsAction organize = new OrganizeImportsAction(
+									editor.getEditorSite());
+							organize.run(icu2);
+						}
+
+						// Format code properly
+						if (Activator
+								.getDefault()
+								.getPreferenceStore()
+								.getBoolean(
+										PreferenceConstants.P_FORMAT_ON_INSERT)) {
+							FormatAllAction format = new FormatAllAction(editor
+									.getEditorSite());
+							format.runOnMultiple(new ICompilationUnit[] { icu2 });
+						}
+						icu2.commitWorkingCopy(true, monitor);
+					} catch (Exception e) {
+						logger.debug(e.toString());
+						CrashReporter.reportException(e);
 					}
-
-					// Format code properly
-					if (Activator.getDefault().getPreferenceStore()
-							.getBoolean(PreferenceConstants.P_FORMAT_ON_INSERT)) {
-						FormatAllAction format = new FormatAllAction(editor
-								.getEditorSite());
-						format.runOnMultiple(new ICompilationUnit[] { icu2 });
-					}
-					icu2.commitWorkingCopy(true, monitor);
-				} catch (Exception e) {
-					logger.debug(e.toString());
-					CrashReporter.reportException(e);
 				}
-			}
-		});
+			});
+		}
 		icu2.close();
 	}
 
