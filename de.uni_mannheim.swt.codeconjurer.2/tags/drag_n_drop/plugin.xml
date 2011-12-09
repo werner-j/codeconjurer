@@ -147,13 +147,23 @@
          </action>
          <action
                class="de.uni_mannheim.swt.codeconjurer.ui.view.elements.actions.ShowAdapterAction"
-               icon="icons/adapter.gif"
+               icon="icons/show_adapter.gif"
                id="de.uni_mannheim.swt.codeconjurer.showAdapterAction"
                label="%show_adapter.label"
                menubarPath="de.uni_mannheim.swt.codeconjurer.views.ResultView.menu"
                style="toggle"
                toolbarPath="de.uni_mannheim.swt.codeconjurer.views.ResultView.toolbar"
                tooltip="%show_adapter.tooltip">
+         </action>
+         <action
+               class="de.uni_mannheim.swt.codeconjurer.ui.view.elements.actions.ShowNegativesAction"
+               icon="icons/show_failed.gif"
+               id="de.uni_mannheim.swt.codeconjurer.action1"
+               label="%show_negatives.label"
+               menubarPath="de.uni_mannheim.swt.codeconjurer.views.ResultView.menu"
+               style="toggle"
+               toolbarPath="de.uni_mannheim.swt.codeconjurer.views.ResultView.toolbar"
+               tooltip="%show_negatives.tooltip">
          </action>
       </viewContribution>
    </extension>

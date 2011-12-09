@@ -43,4 +43,6 @@ public class PreferenceConstants {
 
 	public static final String P_SHOW_ADAPTER = "showAdapter";
 
+	public static final String P_SHOW_NEGATIVES = "showNegatives";
+
 }

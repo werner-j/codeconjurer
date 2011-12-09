@@ -68,7 +68,7 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 		addField(new LabelFieldEditor("", getFieldEditorParent()));
 		// Choose between 5 and 100 results
 		addField(new SliderFieldEditor(PreferenceConstants.P_RESULTS,
-				"&Results per search:", 5, 105, 5, getFieldEditorParent()));
+				"&Results per search:", 5, 1005, 5, getFieldEditorParent()));
 
 		// Issue with JLS3 parser in Eclipse 3.7.1
 		if (platformVersion.contains("3.7.1")) {

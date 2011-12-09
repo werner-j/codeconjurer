@@ -63,7 +63,7 @@ public class StandardSearch extends Search {
 			ws = new WSConnection(serverLocation);
 			session = null;
 			final String queryString = query.getQuery();
-			if (query == null) {
+			if (query == null || queryString == null) {
 				notifySearchEventListeners(SearchEvent.ERROR);
 				done();
 				return Status.CANCEL_STATUS;

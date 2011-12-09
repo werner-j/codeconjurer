@@ -24,7 +24,9 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import de.uni_mannheim.swt.codeconjurer.Activator;
 import de.uni_mannheim.swt.codeconjurer.application.CodeConjurer;
+import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultItem;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.domain.search.Search;
@@ -71,11 +73,34 @@ public class ResultContentProvider implements ITreeContentProvider {
 	public Object[] getElements(Object inputElement) {
 		Search search = (Search) inputElement;
 		ResultItem[] results = search.getSearchResult().getResultItems();
+		boolean noShowNegatives = false;
 		ArrayList<BodyDeclaration> elements = new ArrayList<BodyDeclaration>();
-		for (ResultItem result : results) {
-			BodyDeclaration typeRoot = result.getTypeRoot();
-			if (typeRoot != null)
-				elements.add(typeRoot);
+		if (search.getKind() == Search.TEST_DRIVEN_SEARCH) {
+			// Remove failed candidates from result view if not requested.
+			if (!Activator.getDefault().getPreferenceStore()
+					.getBoolean(PreferenceConstants.P_SHOW_NEGATIVES)) {
+				noShowNegatives = true;
+			}
+			for (ResultItem result : results) {
+				BodyDeclaration typeRoot = result.getTypeRoot();
+				if (noShowNegatives
+						&& result.getProperty(ResultProperty.TEST_RESULT)
+								.startsWith("// No adapter created")) {
+					logger.debug("Skip negative result.");
+				} else {
+					logger.debug("Add result.");
+					if (typeRoot != null) {
+						elements.add(typeRoot);
+					}
+				}
+			}
+		} else {
+			for (ResultItem result : results) {
+				BodyDeclaration typeRoot = result.getTypeRoot();
+				if (typeRoot != null) {
+					elements.add(typeRoot);
+				}
+			}
 		}
 		return elements.toArray();
 	}

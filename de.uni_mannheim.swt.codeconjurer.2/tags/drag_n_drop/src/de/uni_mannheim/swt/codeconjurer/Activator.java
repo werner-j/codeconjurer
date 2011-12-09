@@ -83,9 +83,11 @@ public class Activator extends AbstractUIPlugin {
 					+ launches });
 		}
 
-		// Set this to the default value
+		// Set default values
 		getDefault().getPreferenceStore().setToDefault(
 				PreferenceConstants.P_SHOW_ADAPTER);
+		getDefault().getPreferenceStore().setToDefault(
+				PreferenceConstants.P_SHOW_NEGATIVES);
 
 	}
 

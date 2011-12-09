@@ -61,7 +61,7 @@ public class ResultItem {
 		properties.put(ResultProperty.LICENSE_DESCRIPTION,
 				rb.getLicenseDescription());
 		String testResult = rb.getTestResult();
-		if (testResult.startsWith("error:")) {
+		if (testResult != null && testResult.startsWith("error:")) {
 			testResult = "// No adapter created for candidate.";
 		}
 		properties.put(ResultProperty.TEST_RESULT, testResult);
