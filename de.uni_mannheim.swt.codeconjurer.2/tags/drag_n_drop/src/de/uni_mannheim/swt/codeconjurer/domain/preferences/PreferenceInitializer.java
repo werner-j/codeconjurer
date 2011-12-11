@@ -44,6 +44,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(PreferenceConstants.P_CRASH_REPORTING, true);
 		store.setDefault(PreferenceConstants.P_SHOW_ADAPTER, false);
 		store.setDefault(PreferenceConstants.P_SHOW_NEGATIVES, false);
+		store.setDefault(PreferenceConstants.P_KEYWORD_SEARCH, true);
 	}
 
 }

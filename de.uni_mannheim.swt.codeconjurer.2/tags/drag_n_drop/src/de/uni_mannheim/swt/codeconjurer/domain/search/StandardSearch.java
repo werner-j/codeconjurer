@@ -33,6 +33,8 @@ import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultItem;
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
+import de.uni_mannheim.swt.codeconjurer.ui.listener.UIEvent;
+import de.uni_mannheim.swt.codeconjurer.ui.view.PluginUI;
 
 public class StandardSearch extends Search {
 
@@ -101,13 +103,15 @@ public class StandardSearch extends Search {
 				currentTime = System.nanoTime();
 				timediff = currentTime - startTime;
 				if (timediff > TIMEOUT) {
-					session = "error: Connection timed out.";
+					session = "error: Connection timed out: " + timediff + ">"
+							+ TIMEOUT;
 				}
 				if (monitor.isCanceled()) {
 					connect.interrupt();
 					session = "error: Connection cancelled by user request.";
 				}
 				Thread.sleep(1000);
+				PluginUI.fireEvent(UIEvent.SETSTATUS);
 			}
 			logger.trace("Start time: " + startTime);
 			logger.trace("Current time: " + currentTime);
@@ -116,7 +120,7 @@ public class StandardSearch extends Search {
 
 			if (session.equals("error: Connection timed out.")) {
 				throw new TimeoutException("Connection to server timed out: "
-						+ (currentTime - startTime));
+						+ timediff + ">" + TIMEOUT);
 			}
 
 			// Show error message if session is null
@@ -136,6 +140,12 @@ public class StandardSearch extends Search {
 
 			result.setSessionId(session);
 			logger.debug("Received session id: " + session);
+
+			if (session.contains("no or not enough results")) {
+				notifySearchEventListeners(SearchEvent.NO_RESULTS);
+				done();
+				return Status.CANCEL_STATUS;
+			}
 
 			if (ws.isLoginFailed()) {
 				notifySearchEventListeners(SearchEvent.INVALID_USER);

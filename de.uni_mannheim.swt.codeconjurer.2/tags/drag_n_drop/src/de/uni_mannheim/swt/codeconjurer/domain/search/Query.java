@@ -20,6 +20,8 @@ import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 
+import de.uni_mannheim.swt.codeconjurer.Activator;
+import de.uni_mannheim.swt.codeconjurer.domain.preferences.PreferenceConstants;
 import de.uni_mannheim.swt.codeconjurer.techsrv.CrashReporter;
 
 /**
@@ -77,13 +79,41 @@ public class Query {
 				query = /* primaryType. */getSource()
 						+ " // <con>(protocol:cvs OR protocol:svn) original:yes type:class form:source lang:java</con>";
 			} else {
-				query = getMqlQuery(primaryType);
+				if (Activator.getDefault().getPreferenceStore()
+						.getBoolean(PreferenceConstants.P_KEYWORD_SEARCH)) {
+					query = getKeywordQuery(primaryType);
+				} else {
+					query = getMqlQuery(primaryType);
+				}
 			}
 		} catch (Exception e) {
 			CrashReporter.reportException(e);
 			logger.debug(e.getLocalizedMessage());
 		}
 		return query;
+	}
+
+	/**
+	 * Returns a keyword based query for simple searches of the sourcecode
+	 * 
+	 * @param primaryType
+	 * 
+	 * @return
+	 */
+	public String getKeywordQuery(IType primaryType) {
+		StringBuilder query = new StringBuilder();
+		query.append(primaryType.getElementName() + " ");
+		try {
+			IMethod[] methods = primaryType.getMethods();
+			for (IMethod method : methods) {
+				query.append(method.getElementName() + " ");
+			}
+			query.append("lang:java type:class form:source original:yes (protocol:cvs OR protocol:svn)");
+		} catch (Exception e) {
+			CrashReporter.reportException(e);
+			logger.warn(e.getMessage());
+		}
+		return query.toString();
 	}
 
 	/**
@@ -96,9 +126,9 @@ public class Query {
 
 		query.append(primaryType.getElementName());
 		try {
-			query.append(" ( ");
 			IMethod[] methods = primaryType.getMethods();
 			if (methods.length > 0) {
+				query.append(" ( ");
 				for (IMethod method : methods) {
 					query.append(method.getElementName() + "(");
 					ILocalVariable[] parameters = method.getParameters();
@@ -113,8 +143,9 @@ public class Query {
 					query.append("):" + getSimpleName(method.getReturnType())
 							+ "; ");
 				}
+				query.append(") ");
 			}
-			query.append(") lang:java type:class form:source original:yes (protocol:cvs OR protocol:svn)");
+			query.append(" lang:java type:class form:source original:yes (protocol:cvs OR protocol:svn)");
 		} catch (Exception e) {
 			CrashReporter.reportException(e);
 			logger.warn(e.getMessage());

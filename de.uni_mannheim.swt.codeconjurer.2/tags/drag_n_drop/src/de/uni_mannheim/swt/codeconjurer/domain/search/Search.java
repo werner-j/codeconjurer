@@ -30,12 +30,13 @@ import de.uni_mannheim.swt.codeconjurer.domain.result.Result;
  */
 public abstract class Search extends Job {
 
-	protected Logger logger = Logger.getLogger(Search.class);
+	protected Logger logger = Logger.getLogger(this.getClass());
 
 	public final static int STANDARD_SEARCH = 1;
 	public final static int TEST_DRIVEN_SEARCH = 2;
 
-	protected final static long TIMEOUT = 30000000000l;
+	// Set server timeout to 60s
+	protected final static long TIMEOUT = 60 * 1000000000l;
 
 	protected int kind;
 

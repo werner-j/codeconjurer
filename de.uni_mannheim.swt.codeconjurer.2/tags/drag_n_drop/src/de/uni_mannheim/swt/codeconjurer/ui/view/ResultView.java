@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.swt.SWT;
@@ -225,8 +226,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 			updateStatus("A server error occured during the search. Check your settings and contact the administrator if this problem persists.");
 		} else if (event == SearchEvent.INVALID_USER) {
 			updateStatus("Invalid username / password. Please check your preference settings.");
-		} else if (event == SearchEvent.INVALID_USER) {
-			updateStatus("Search cancelled. Close connection...");
+		} else if (event == SearchEvent.NO_RESULTS) {
+			updateStatus("No results available. Perhaps you could try another search method (see preferences).");
 		} else {
 			updateStatus();
 		}
@@ -349,14 +350,12 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 	@Override
 	public void partClosed(IWorkbenchPartReference partRef) {
-		// TODO Auto-generated method stub
-
+		PluginUI.fireEvent(UIEvent.REFRESH);
 	}
 
 	@Override
 	public void partDeactivated(IWorkbenchPartReference partRef) {
-		// TODO Auto-generated method stub
-
+		PluginUI.fireEvent(UIEvent.REFRESH);
 	}
 
 	@Override
@@ -367,8 +366,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 	@Override
 	public void partHidden(IWorkbenchPartReference partRef) {
-		// TODO Auto-generated method stub
-
+		PluginUI.fireEvent(UIEvent.REFRESH);
 	}
 
 	@Override
@@ -393,8 +391,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 
 	@Override
 	public void partInputChanged(IWorkbenchPartReference partRef) {
-		// TODO Auto-generated method stub
-
+		PluginUI.fireEvent(UIEvent.REFRESH);
 	}
 
 	public void updateStatus() {
@@ -496,8 +493,13 @@ public class ResultView extends ViewPart implements SearchEventListener,
 								break;
 							}
 						} else {
-							showAdapterAction.getAction().setEnabled(false);
-							message.append("No search results available.");
+							if (showAdapterAction != null) {
+								IAction action = showAdapterAction.getAction();
+								if (action != null) {
+									action.setEnabled(false);
+									message.append("No search results available.");
+								}
+							}
 						}
 					}
 				} else {

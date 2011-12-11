@@ -45,4 +45,6 @@ public class PreferenceConstants {
 
 	public static final String P_SHOW_NEGATIVES = "showNegatives";
 
+	public static final String P_KEYWORD_SEARCH = "doKeywordBasedSearch";
+
 }

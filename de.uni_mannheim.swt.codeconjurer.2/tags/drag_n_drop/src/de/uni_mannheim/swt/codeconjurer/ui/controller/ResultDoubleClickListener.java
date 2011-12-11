@@ -17,6 +17,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 
 import de.uni_mannheim.swt.codeconjurer.domain.result.ResultProperty;
 
@@ -37,12 +38,29 @@ public class ResultDoubleClickListener implements IDoubleClickListener {
 	 */
 	@Override
 	public void doubleClick(DoubleClickEvent event) {
+		TreeViewer source = (TreeViewer) event.getSource();
 		TreeSelection selection = (TreeSelection) event.getSelection();
 		BodyDeclaration selectedElement = (BodyDeclaration) selection
 				.getFirstElement();
-		logger.debug("Selected element's source: \r\n"
-				+ selectedElement.toString());
-		logger.debug("URI: "
+
+		Object[] expanded = source.getExpandedElements();
+		boolean isExpanded = false;
+		for (Object elO : expanded) {
+			BodyDeclaration el = (BodyDeclaration) elO;
+			if (el.getProperty(ResultProperty.URI.name())
+					.toString()
+					.equals((selectedElement.getProperty(ResultProperty.URI
+							.name())).toString())) {
+				isExpanded = true;
+			}
+		}
+		if (isExpanded) {
+			source.collapseToLevel(selection.getPaths()[0],
+					TreeViewer.ALL_LEVELS);
+		} else {
+			source.expandToLevel(selection.getPaths()[0], TreeViewer.ALL_LEVELS);
+		}
+		logger.debug("Double clicked URI: "
 				+ selectedElement.getProperty(ResultProperty.URI.name()));
 	}
 }

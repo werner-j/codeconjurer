@@ -13,6 +13,7 @@
 package de.uni_mannheim.swt.codeconjurer.ui.preferences;
 
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
@@ -66,9 +67,11 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 				getFieldEditorParent());
 		addField(pwEditor);
 		addField(new LabelFieldEditor("", getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PreferenceConstants.P_KEYWORD_SEARCH,
+				"&Keyword-based search", getFieldEditorParent()));
 		// Choose between 5 and 100 results
 		addField(new SliderFieldEditor(PreferenceConstants.P_RESULTS,
-				"&Results per search:", 5, 1005, 5, getFieldEditorParent()));
+				"&Results per search:", 5, 105, 5, getFieldEditorParent()));
 
 		// Issue with JLS3 parser in Eclipse 3.7.1
 		if (platformVersion.contains("3.7.1")) {
