@@ -160,8 +160,9 @@ public class ResultItem {
 				BodyDeclaration typeBodyDec = (BodyDeclaration) typeObject;
 				if (typeBodyDec.getNodeType() == BodyDeclaration.TYPE_DECLARATION) {
 					TypeDeclaration type = (TypeDeclaration) typeBodyDec;
-					if (type.getName().getFullyQualifiedName()
-							.equals(getProperty(ResultProperty.NAME)))
+					String typeName = type.getName().getFullyQualifiedName();
+					String reportedName = getProperty(ResultProperty.NAME);
+					if (typeName.equals(reportedName))
 						declaration = type;
 				}
 				if (typeBodyDec.getNodeType() == BodyDeclaration.ENUM_DECLARATION) {

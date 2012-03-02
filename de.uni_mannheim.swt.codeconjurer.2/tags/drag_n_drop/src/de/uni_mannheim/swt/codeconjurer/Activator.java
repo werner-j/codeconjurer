@@ -78,7 +78,9 @@ public class Activator extends AbstractUIPlugin {
 				"Code Conjurer plug-in start #" + launches);
 
 		// Report number of launches from time to time
+		Logger.getRootLogger().debug("Code Conjurer Launch #" + launches);
 		if (launches < 2 || launches % 10 == 0) {
+			Logger.getRootLogger().debug("Report launch.");
 			UsageDataSender.sendInformation(new String[] { "Launches_"
 					+ launches });
 		}

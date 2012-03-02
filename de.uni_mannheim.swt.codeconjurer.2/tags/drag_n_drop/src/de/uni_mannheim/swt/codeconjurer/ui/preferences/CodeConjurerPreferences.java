@@ -75,7 +75,7 @@ public class CodeConjurerPreferences extends FieldEditorPreferencePage
 
 		// Issue with JLS3 parser in Eclipse 3.7.1
 		if (platformVersion.contains("3.7.1")) {
-			showJLSBugNote();
+			// showJLSBugNote();
 		}
 	}
 
