@@ -19,33 +19,9 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  lib/java2html.jar,
- lib/mots-wsClient.jar,
- lib/log4j-1.2.14.jar
-Export-Package: bin.com.merotronics.merobase.util.codehighlighter.properties.config,
- bin.com.merotronics.merobase.util.codehighlighter.properties.lang,
- bin.com.merotronics.merobase.util.codehighlighter.properties.styles,
- com.merotronics.merobase.util;uses:="org.apache.lucene.search",
- com.merotronics.merobase.util.codehighlighter;uses:="com.merotronics.merobase.util.datastructure",
- com.merotronics.merobase.util.datastructure,
- com.merotronics.merobase.util.download,
- com.merotronics.merobase.util.download.cvsapi;uses:="org.netbeans.lib.cvsclient.event,com.merotronics.merobase.util.download",
- com.merotronics.merobase.util.download.file;uses:="com.merotronics.merobase.util.download",
- com.merotronics.merobase.util.download.http;uses:="com.merotronics.merobase.util.download",
- com.merotronics.merobase.util.download.svnapi;
-  uses:="org.tmatesoft.svn.core,
-   com.merotronics.merobase.util.download,
-   org.tmatesoft.svn.core.io.diff,
-   org.tmatesoft.svn.core.io",
- com.merotronics.merobase.util.exception,
- com.merotronics.merobase.util.exception.compile,
- com.merotronics.merobase.util.exception.parser,
- com.merotronics.merobase.util.exception.search,
- com.merotronics.merobase.util.exception.test,
- com.merotronics.merobase.util.kindconstraint;uses:="com.merotronics.merobase.util.datastructure",
- com.merotronics.merobase.util.licensechecker,
- com.merotronics.merobase.util.lucene;uses:="org.apache.lucene.search",
- com.merotronics.merobase.util.permission,
- com.merotronics.merobase.util.struts.bean;uses:="com.merotronics.merobase.util.datastructure,org.apache.lucene.document",
+ lib/log4j-1.2.14.jar,
+ lib/mots-wsClient.jar
+Export-Package: 
  com.merotronics.merobase.ws.action;uses:="javax.xml.bind,javax.xml.ws,javax.xml.namespace",
  com.merotronics.merobase.ws.client.util,
  de.java2html;

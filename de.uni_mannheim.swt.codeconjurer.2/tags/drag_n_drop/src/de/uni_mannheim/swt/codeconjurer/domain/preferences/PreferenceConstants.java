@@ -28,6 +28,7 @@ public class PreferenceConstants {
 	public static final String P_PASSWORD = "password";
 
 	public static final String P_RESULTS = "numberOfResultsToRetrieve";
+	public static final int C_MAX_RESULTS = 30000;
 
 	public static final String P_OVERWRITE_ON_INSERT = "overwriteOnInsert";
 

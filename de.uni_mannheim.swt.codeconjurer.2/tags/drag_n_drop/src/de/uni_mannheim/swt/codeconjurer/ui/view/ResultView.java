@@ -33,7 +33,9 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPartReference;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
@@ -287,8 +289,11 @@ public class ResultView extends ViewPart implements SearchEventListener,
 		final ResultView view = this;
 		if (event == UIEvent.REFRESH) {
 			logger.debug("Refresh ResultTree");
-			PluginUI.getWindow().getWorkbench().getDisplay()
-					.asyncExec(new Runnable() {
+			IWorkbenchWindow window = PluginUI.getWindow();
+			if (window != null) {
+				IWorkbench wb = window.getWorkbench();
+				if (wb != null) {
+					wb.getDisplay().asyncExec(new Runnable() {
 						@Override
 						public void run() {
 							setPreview();
@@ -302,6 +307,8 @@ public class ResultView extends ViewPart implements SearchEventListener,
 							}
 						}
 					});
+				}
+			}
 			logger.debug("Update Statusline");
 			updateStatus();
 		}
@@ -404,114 +411,131 @@ public class ResultView extends ViewPart implements SearchEventListener,
 	 * @param message
 	 */
 	private void updateStatus(final String msg) {
-		PluginUI.getWindow().getShell().getDisplay().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				// Request from user to set preferences
-				boolean noServer = Activator.getDefault().getPreferenceStore()
-						.getString(PreferenceConstants.P_SERVER).equals("");
-				boolean noUsername = Activator.getDefault()
-						.getPreferenceStore()
-						.getString(PreferenceConstants.P_USERNAME).equals("");
-				boolean noPassword = Activator.getDefault()
-						.getPreferenceStore()
-						.getString(PreferenceConstants.P_PASSWORD).equals("");
-				StringBuilder message = new StringBuilder();
-				if (msg.equals("")) {
-					if (noServer || noUsername || noPassword) {
-						message.append("Please set up preferences first. Go to Eclipse -> Preferences -> Code Conjurer.");
-					} else {
-						Search search = CodeConjurer.getInstance()
-								.getActiveEditorSearch();
-						ActionContributionItem showAdapterAction = (ActionContributionItem) getViewSite()
-								.getActionBars()
-								.getToolBarManager()
-								.find("de.uni_mannheim.swt.codeconjurer.showAdapterAction");
+		IWorkbenchWindow window = PluginUI.getWindow();
+		if (window != null) {
+			IWorkbench wb = window.getWorkbench();
+			if (wb != null) {
+				wb.getDisplay().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						// Request from user to set preferences
+						boolean noServer = Activator.getDefault()
+								.getPreferenceStore()
+								.getString(PreferenceConstants.P_SERVER)
+								.equals("");
+						boolean noUsername = Activator.getDefault()
+								.getPreferenceStore()
+								.getString(PreferenceConstants.P_USERNAME)
+								.equals("");
+						boolean noPassword = Activator.getDefault()
+								.getPreferenceStore()
+								.getString(PreferenceConstants.P_PASSWORD)
+								.equals("");
+						StringBuilder message = new StringBuilder();
+						if (msg.equals("")) {
+							if (noServer || noUsername || noPassword) {
+								message.append("Please set up preferences first. Go to Eclipse -> Preferences -> Code Conjurer.");
+							} else {
+								Search search = CodeConjurer.getInstance()
+										.getActiveEditorSearch();
+								ActionContributionItem showAdapterAction = (ActionContributionItem) getViewSite()
+										.getActionBars()
+										.getToolBarManager()
+										.find("de.uni_mannheim.swt.codeconjurer.showAdapterAction");
 
-						if (search != null) {
-							Result result = null;
-							int results = 0;
-							switch (search.getKind()) {
-							case Search.STANDARD_SEARCH:
-								showAdapterAction.getAction().setEnabled(false);
-								result = search.getSearchResult();
-								results = result.getResultItems().length;
-								if (results > 0) {
-									message.append(results
-											+ " results found. "
-											+ result.getNumberOfSuccessfullyFetchedSources()
-											+ " items successfully downloaded. :: Result created "
-											+ result.getCreationDate());
-								}
-								break;
+								if (search != null) {
+									Result result = null;
+									int results = 0;
+									switch (search.getKind()) {
+									case Search.STANDARD_SEARCH:
+										showAdapterAction.getAction()
+												.setEnabled(false);
+										result = search.getSearchResult();
+										results = result.getResultItems().length;
+										if (results > 0) {
+											message.append(results
+													+ " results found. "
+													+ result.getNumberOfSuccessfullyFetchedSources()
+													+ " items successfully downloaded. :: Result created "
+													+ result.getCreationDate());
+										}
+										break;
 
-							case Search.TEST_DRIVEN_SEARCH:
-								showAdapterAction.getAction().setEnabled(true);
-								result = search.getSearchResult();
-								int passes = result
-										.getNumberOfSuccessfulTests();
-								int retrieved = result
-										.getNumberOfSuccessfullyFetchedSources();
-								long time = search.getDuration();
-								String duration;
-								if (time / Math.pow(10, 9) < 120) {
-									duration = String.valueOf(time
-											/ Math.pow(10, 9));
-									duration = duration.substring(0,
-											duration.indexOf("."));
-									duration += " s";
+									case Search.TEST_DRIVEN_SEARCH:
+										showAdapterAction.getAction()
+												.setEnabled(true);
+										result = search.getSearchResult();
+										int passes = result
+												.getNumberOfSuccessfulTests();
+										int retrieved = result
+												.getNumberOfSuccessfullyFetchedSources();
+										long time = search.getDuration();
+										String duration;
+										if (time / Math.pow(10, 9) < 120) {
+											duration = String.valueOf(time
+													/ Math.pow(10, 9));
+											duration = duration.substring(0,
+													duration.indexOf("."));
+											duration += " s";
+										} else {
+											duration = String
+													.valueOf((time / Math.pow(
+															10, 9)) / 60);
+											duration = duration.substring(0,
+													duration.indexOf(".") + 2);
+											duration += " min";
+										}
+										results = result.getResultItems().length;
+										if (search.getState() == Job.RUNNING) {
+											message.append("Testing in progress");
+											message.append(" :: Time elapsed "
+													+ duration);
+										}
+										if (retrieved > 0) {
+											message.append(" :: "
+													+ passes
+													+ " of "
+													+ results
+													+ " candidates passed test. "
+													+ retrieved
+													+ " items successfully downloaded.");
+											if (search.isFinished()) {
+												message.append(" :: Result created "
+														+ result.getCreationDate());
+												message.append(" :: Result created in "
+														+ duration);
+											}
+										}
+										break;
+
+									default:
+										message.append("No results.");
+										break;
+									}
 								} else {
-									duration = String.valueOf((time / Math.pow(
-											10, 9)) / 60);
-									duration = duration.substring(0,
-											duration.indexOf(".") + 2);
-									duration += " min";
-								}
-								results = result.getResultItems().length;
-								if (search.getState() == Job.RUNNING) {
-									message.append("Testing in progress");
-									message.append(" :: Time elapsed "
-											+ duration);
-								}
-								if (retrieved > 0) {
-									message.append(" :: " + passes + " of "
-											+ results
-											+ " candidates passed test. "
-											+ retrieved
-											+ " items successfully downloaded.");
-									if (search.isFinished()) {
-										message.append(" :: Result created "
-												+ result.getCreationDate());
-										message.append(" :: Result created in "
-												+ duration);
+									if (showAdapterAction != null) {
+										IAction action = showAdapterAction
+												.getAction();
+										if (action != null) {
+											action.setEnabled(false);
+											message.append("No search results available.");
+										}
 									}
 								}
-								break;
-
-							default:
-								message.append("No results.");
-								break;
 							}
 						} else {
-							if (showAdapterAction != null) {
-								IAction action = showAdapterAction.getAction();
-								if (action != null) {
-									action.setEnabled(false);
-									message.append("No search results available.");
-								}
-							}
+							message.append(msg);
+						}
+						if (statusLabel != null && !statusLabel.isDisposed()) {
+							statusLabel.setText("[Code Conjurer] "
+									+ message.toString());
+							statusLabel.pack();
+							statusLabel.getParent().pack();
 						}
 					}
-				} else {
-					message.append(msg);
-				}
-				if (statusLabel != null && !statusLabel.isDisposed()) {
-					statusLabel.setText("[Code Conjurer] " + message.toString());
-					statusLabel.pack();
-					statusLabel.getParent().pack();
-				}
+				});
 			}
-		});
+		}
 		logger.debug("Status refreshed!");
 	}
 
