@@ -118,16 +118,16 @@ public class StandardSearch extends Search {
 			logger.trace("========================================");
 			logger.trace("Difference: " + timediff);
 
-			if (session.equals("error: Connection timed out.")) {
-				throw new TimeoutException("Connection to server timed out: "
-						+ timediff + ">" + TIMEOUT);
-			}
-
 			// Show error message if session is null
 			if (session == null) {
 				notifySearchEventListeners(SearchEvent.ERROR);
 				done();
 				return Status.CANCEL_STATUS;
+			}
+
+			if (session.equals("error: Connection timed out.")) {
+				throw new TimeoutException("Connection to server timed out: "
+						+ timediff + ">" + TIMEOUT);
 			}
 
 			// Check for error message from server
@@ -280,7 +280,7 @@ public class StandardSearch extends Search {
 				} catch (Exception e) {
 					CrashReporter.reportException(
 							e,
-							"Could not fetch"
+							"Could not fetch URL "
 									+ r.getProperty(ResultProperty.SHORT_URL),
 							supplInf);
 					logger.debug(e.getLocalizedMessage());

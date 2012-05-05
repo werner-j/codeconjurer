@@ -20,9 +20,8 @@ Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  lib/java2html.jar,
  lib/log4j-1.2.14.jar,
- lib/mots-wsClient.jar
-Export-Package: 
- com.merotronics.merobase.ws.action;uses:="javax.xml.bind,javax.xml.ws,javax.xml.namespace",
+ lib/mots-wsClientCC.jar
+Export-Package: com.merotronics.merobase.ws.action;uses:="javax.xml.bind,javax.xml.ws,javax.xml.namespace",
  com.merotronics.merobase.ws.client.util,
  de.java2html;
   uses:="de.java2html.gui,

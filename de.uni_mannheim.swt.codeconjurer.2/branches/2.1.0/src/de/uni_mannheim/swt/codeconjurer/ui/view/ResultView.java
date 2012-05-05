@@ -322,22 +322,25 @@ public class ResultView extends ViewPart implements SearchEventListener,
 			if (id.equals("org.eclipse.jdt.ui.CompilationUnitEditor")) {
 				try {
 					IEditorPart editor = PluginUI.getActiveEditor();
-					Control ctrl = (Control) editor.getAdapter(Control.class);
-					DropTarget dropTarget = (DropTarget) ctrl
-							.getData(DND.DROP_TARGET_KEY);
-					if (dropTarget != null) {
-						try {
-							// Add drop listener to editor
-							logger.debug("Add drop listener to "
-									+ dropTarget.toString());
-							dropTarget
-									.addDropListener(new JavaEditorDropListener());
+					if (editor != null) {
+						Control ctrl = (Control) editor
+								.getAdapter(Control.class);
+						DropTarget dropTarget = (DropTarget) ctrl
+								.getData(DND.DROP_TARGET_KEY);
+						if (dropTarget != null) {
+							try {
+								// Add drop listener to editor
+								logger.debug("Add drop listener to "
+										+ dropTarget.toString());
+								dropTarget
+										.addDropListener(new JavaEditorDropListener());
 
-						} catch (Exception e) {
-							CrashReporter.reportException(e);
-							logger.debug("Could not register drop service: "
-									+ e.getMessage());
-							e.printStackTrace();
+							} catch (Exception e) {
+								CrashReporter.reportException(e);
+								logger.debug("Could not register drop service: "
+										+ e.getMessage());
+								e.printStackTrace();
+							}
 						}
 					}
 				} catch (Exception e) {
