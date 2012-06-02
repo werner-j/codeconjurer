@@ -79,12 +79,7 @@ public class ResultTreeDragListener implements DragSourceListener {
 		try {
 			BodyDeclaration selectedElement = (BodyDeclaration) selection[0]
 					.getData();
-			if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-				// TextTransfer simply transfers the selected code element.
-				event.data = selectedElement.toString();
-				logger.debug("TextTransfer triggered");
-			} else if (PluginTransfer.getInstance().isSupportedType(
-					event.dataType)) {
+			if (PluginTransfer.getInstance().isSupportedType(event.dataType)) {
 				// For a PluginTransfer, we transmit the URI of the element.
 				// The DropListener is responsible for handling this.
 				Object uri = selectedElement.getProperty(ResultProperty.URI
@@ -94,6 +89,22 @@ public class ResultTreeDragListener implements DragSourceListener {
 							"de.uni_mannheim.swt.codeconjurer.ui.dnd.pluginDropAction",
 							(((String) uri).getBytes()));
 				logger.debug("PluginTransfer triggered for " + uri);
+			} else if (TextTransfer.getInstance().isSupportedType(
+					event.dataType)) {
+				// TextTransfer simply transfers the selected code element.
+				String sourceLink = "@origin \r\n * "
+						+ selectedElement.getProperty(ResultProperty.SHORT_URL
+								.name()) + "";
+				String data = selectedElement.toString();
+				if (data.startsWith("/**") && data.contains("*/")) {
+					event.data = data.substring(0, data.indexOf("*/") - 2)
+							+ "\r\n * \r\n * " + sourceLink + "\r\n *"
+							+ data.substring(data.indexOf("*/"), data.length());
+				} else {
+					event.data = "/** " + sourceLink + "\r\n */"
+							+ selectedElement.toString();
+				}
+				logger.debug("TextTransfer triggered");
 			}
 		} catch (Exception e) {
 			CrashReporter.reportException(e);

@@ -333,7 +333,7 @@ public class ResultView extends ViewPart implements SearchEventListener,
 								logger.debug("Add drop listener to "
 										+ dropTarget.toString());
 								dropTarget
-										.addDropListener(new JavaEditorDropListener());
+										.addDropListener(JavaEditorDropListener.getInstance());
 
 							} catch (Exception e) {
 								CrashReporter.reportException(e);

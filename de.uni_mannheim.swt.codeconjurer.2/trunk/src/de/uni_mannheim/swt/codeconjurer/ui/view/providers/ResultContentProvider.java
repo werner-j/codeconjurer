@@ -86,9 +86,9 @@ public class ResultContentProvider implements ITreeContentProvider {
 				if (noShowNegatives
 						&& result.getProperty(ResultProperty.TEST_RESULT)
 								.startsWith("// No adapter created")) {
-					logger.debug("Skip negative result.");
+					logger.trace("Skip negative result.");
 				} else {
-					logger.debug("Add result.");
+					logger.trace("Add result.");
 					if (typeRoot != null) {
 						elements.add(typeRoot);
 					}
