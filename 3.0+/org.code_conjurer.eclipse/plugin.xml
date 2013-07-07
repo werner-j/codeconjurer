@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="org.eclipse.core.resources.IFile"
+            id="org.code_conjurer.eclipse.contribution1">
+         <menu
+               label="Code Conjurer"
+               path="additions"
+               id="org.code_conjurer.eclipse.menu1">
+            <separator
+                  name="group1">
+            </separator>
+         </menu>
+         <action
+               label="JUnit Test Reuse"
+               class="org.code_conjurer.eclipse.popup.actions.TestReuse"
+               menubarPath="org.code_conjurer.eclipse.menu1/group1"
+               enablesFor="1"
+               id="org.code_conjurer.eclipse.newAction">
+         </action>
+      </objectContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="Code Conjurer"
+            class="org.code_conjurer.eclipse.preferences.MainPreferencePage"
+            id="org.code_conjurer.eclipse.preferences.MainPreferencePage">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.code_conjurer.eclipse.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Code Conjurer"
+            id="org.code_conjurer.eclipse">
+      </category>
+      <view
+            name="Code Reuse"
+            icon="icons/sample.gif"
+            category="org.code_conjurer.eclipse"
+            class="org.code_conjurer.eclipse.views.ReuseView"
+            id="org.code_conjurer.eclipse.views.ReuseView">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.ProblemView"
+               relationship="right"
+               id="org.code_conjurer.eclipse.views.ReuseView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+
+</plugin>
