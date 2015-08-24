@@ -1,6 +1,6 @@
 0. Information
 ===============
-Since the work on the merobase.com backend work has been discontinued, this project is not actively developed any more.
+Since the work on the merobase.com backend has been discontinued, this project is not actively developed any more.
 
 1. About
 ========
