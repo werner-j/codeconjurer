@@ -1,10 +1,10 @@
-0. Information
-===============
+Information
+===
 
 Since the work on the merobase.com backend has been discontinued, this project is not actively developed any more.
 
-1. About
-========
+About
+===
 
 Code Conjurer is a software reuse tool developed at the chair for software engineering at the University of Mannheim.
 
